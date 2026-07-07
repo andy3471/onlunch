@@ -1,13 +1,20 @@
 <script setup>
-import { computed } from 'vue';
-import { useForm, usePage, Link } from '@inertiajs/vue3';
+import { useForm, Link } from '@inertiajs/vue3';
 import { Switch } from '@headlessui/vue';
 import AuthCard from '@/Components/AuthCard.vue';
 import Input from '@/Components/Input.vue';
 import Button from '@/Components/Button.vue';
 
-const page = usePage();
-const config = computed(() => page.props.config);
+defineProps({
+    registerEnabled: {
+        type: Boolean,
+        default: false,
+    },
+    resetPasswordEnabled: {
+        type: Boolean,
+        default: false,
+    },
+});
 
 const form = useForm({
     email: '',
@@ -60,7 +67,7 @@ const submit = () => {
 
             <div class="flex items-center justify-between pt-4">
                 <Link
-                    v-if="config.resetPasswordEnabled"
+                    v-if="resetPasswordEnabled"
                     href="/forgot-password"
                     class="text-sm text-primary-400 hover:text-primary-300 transition-colors"
                 >
@@ -78,7 +85,7 @@ const submit = () => {
             </div>
         </form>
 
-        <div v-if="config.registerEnabled" class="mt-6 pt-6 border-t border-slate-700/50 text-center">
+        <div v-if="registerEnabled" class="mt-6 pt-6 border-t border-slate-700/50 text-center">
             <p class="text-slate-400 text-sm">
                 Don't have an account?
                 <Link href="/register" class="text-primary-400 hover:text-primary-300 transition-colors">

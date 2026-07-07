@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Auth;
 
+use App\Models\Site;
 use App\Models\Team;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -12,13 +13,15 @@ class RegistrationTest extends TestCase
 {
     use RefreshDatabase;
 
+    private Site $site;
+
     private Team $team;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->team = Team::factory()->create(['slug' => 'test']);
+        [$this->site, $this->team] = $this->createSiteWithTeam(['slug' => 'test']);
     }
 
     /** Registration screen can be rendered on a tenant subdomain. */
@@ -43,6 +46,7 @@ class RegistrationTest extends TestCase
         $response->assertRedirect('/');
 
         $this->assertDatabaseHas('users', ['email' => 'test@example.com']);
+        $this->assertTrue($this->site->members()->where('email', 'test@example.com')->exists());
         $this->assertTrue($this->team->members()->where('email', 'test@example.com')->exists());
     }
 }

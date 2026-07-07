@@ -35,7 +35,20 @@ return Application::configure(basePath: dirname(__DIR__))
         }
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->redirectGuestsTo(fn (): string => route('login'));
+        $middleware->redirectGuestsTo(function (): string {
+            if (request()->route('tenant') !== null) {
+                return '/login';
+            }
+
+            $domain = config('app.domain');
+            $host   = request()->getHost();
+
+            if ($host !== $domain && str_ends_with($host, '.'.$domain)) {
+                return '/login';
+            }
+
+            return route('brochure.home');
+        });
         $middleware->redirectUsersTo('/');
 
         $middleware->web(append: [
@@ -47,8 +60,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->throttleApi('60,1');
 
         $middleware->alias([
-            'bindings'     => Illuminate\Routing\Middleware\SubstituteBindings::class,
-            'team.feature' => App\Http\Middleware\EnsureTeamFeatureEnabled::class,
+            'bindings'            => Illuminate\Routing\Middleware\SubstituteBindings::class,
+            'team.feature'        => App\Http\Middleware\EnsureTeamFeatureEnabled::class,
+            'onboarding.complete' => App\Http\Middleware\EnsureOnboardingComplete::class,
+            'admin'               => App\Http\Middleware\EnsureUserIsAdmin::class,
+            'time_off.manage'     => App\Http\Middleware\EnsureUserCanManageTimeOff::class,
         ]);
 
         $middleware->priority([

@@ -46,7 +46,7 @@ const inputClasses = 'w-full px-3 py-2 bg-slate-900 border border-slate-700 roun
             <div class="max-w-md mx-auto px-4 sm:px-6">
                 <div class="text-center mb-8">
                     <h1 class="text-3xl font-bold text-white">Create Your Team</h1>
-                    <p class="mt-2 text-slate-400">Set up your team and start managing lunches with OnLunch.</p>
+                    <p class="mt-2 text-slate-400">Set up your team and start managing flexible working with FlexRota.</p>
                 </div>
 
                 <form @submit.prevent="handleSubmit" class="bg-slate-800/60 rounded-xl border border-slate-700/50 p-6">

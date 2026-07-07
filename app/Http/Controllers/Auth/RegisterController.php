@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\Team;
+use App\Models\Site;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
@@ -30,8 +30,11 @@ class RegisterController extends Controller
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 
-        /** @var Team $team */
-        $team = app('currentTeam');
+        /** @var Site $site */
+        $site = resolve('currentSite');
+        $team = $site->defaultTeam();
+
+        abort_unless($team !== null, 500);
 
         $user = User::create([
             'name'     => $request->name,
@@ -39,7 +42,8 @@ class RegisterController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        $team->members()->attach($user);
+        $site->members()->attach($user->id, ['is_site_admin' => false]);
+        $team->members()->attach($user->id);
 
         event(new Registered($user));
 

@@ -32,6 +32,27 @@ This project has domain-specific skills available. You MUST activate the relevan
 - `inertia-vue-development` — Develops Inertia.js v1 Vue client-side applications. Activates when creating Vue pages, forms, or navigation; using Link or router; or when user mentions Vue with Inertia, Vue pages, Vue forms, or Vue navigation.
 - `tailwindcss-development` — Styles applications using Tailwind CSS v3 utilities. Activates when adding styles, restyling components, working with gradients, spacing, layout, flex, grid, responsive design, dark mode, colors, typography, or borders; or when the user mentions CSS, styling, classes, Tailwind, restyle, hero section, cards, buttons, or any visual/UI changes.
 
+## Code Standards
+
+### PHP
+
+- Every PHP file must start with `declare(strict_types=1);`. Pint enforces this via `declare_strict_types`.
+- Use explicit parameter and return types on all methods and functions.
+- Put business logic in **Action** classes under `app/Actions/`, not controllers or Filament pages.
+- Controllers validate HTTP input (Form Requests) and delegate to actions; actions perform the work.
+- Name actions `{Verb}{Noun}Action` (e.g. `StoreTaskAssignmentAction`) with a single public `execute()` method.
+- Use the `AsAction` trait when you need `SomeAction::run(...)` for static invocation.
+- Jobs may wrap actions for queued work; pass primitives/models to jobs, never Form Requests.
+
+### TypeScript / Vue
+
+- All `<script>` blocks in Vue components must use `lang="ts"`.
+- `tsconfig.json` runs in strict mode with `noUncheckedIndexedAccess` — handle `undefined` from index access.
+- Define explicit types for props, composable return values, and non-trivial functions.
+- Avoid `any`; use generated types from `@/Types/generated` for server data.
+- Regenerate types after changing PHP DTOs: `vendor/bin/sail artisan typescript:transform`.
+- Required props should not be marked optional with `withDefaults` unless the parent truly omits them.
+
 ## Conventions
 
 - You must follow all existing code conventions used in this application. When creating or editing a file, check sibling files for the correct structure, approach, and naming.
@@ -46,6 +67,7 @@ This project has domain-specific skills available. You MUST activate the relevan
 
 - Stick to existing directory structure; don't create new base folders without approval.
 - Do not change the application's dependencies without approval.
+- Domain mutations live in `app/Actions/{Domain}/` — add new actions there rather than expanding controllers.
 
 ## Frontend Bundling
 

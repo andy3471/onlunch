@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Models\Site;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -13,7 +14,7 @@ class TeamRegistrationTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** A team can be created with an admin user via the registration form. */
+    /** A site can be created with an admin user via the registration form. */
     public function test_team_can_be_registered(): void
     {
         $response = $this->post('http://localhost/register', [
@@ -27,21 +28,23 @@ class TeamRegistrationTest extends TestCase
 
         $response->assertRedirect();
 
-        $this->assertDatabaseHas('teams', [
+        $this->assertDatabaseHas('sites', [
             'name' => 'Test Team',
             'slug' => 'test-team',
         ]);
 
         $this->assertDatabaseHas('users', [
-            'name'     => 'Jane Smith',
-            'email'    => 'jane@example.com',
-            'is_admin' => true,
+            'name'  => 'Jane Smith',
+            'email' => 'jane@example.com',
         ]);
 
-        $team = Team::where('slug', 'test-team')->first();
+        $site = Site::where('slug', 'test-team')->first();
         $user = User::where('email', 'jane@example.com')->first();
+        $team = Team::where('site_id', $site->id)->first();
 
+        $this->assertTrue($site->members->contains($user));
         $this->assertTrue($team->members->contains($user));
+        $this->assertTrue($user->isSiteAdminFor($site));
         $this->assertAuthenticated();
     }
 
@@ -62,7 +65,7 @@ class TeamRegistrationTest extends TestCase
     /** Team slug must be unique. */
     public function test_team_slug_must_be_unique(): void
     {
-        Team::factory()->create(['slug' => 'taken-slug']);
+        Site::factory()->create(['slug' => 'taken-slug']);
 
         $response = $this->post('http://localhost/register', [
             'team_name'             => 'Another Team',

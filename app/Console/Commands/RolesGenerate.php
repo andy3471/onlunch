@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Models\RoleAssignment;
 use App\Models\Team;
 use Carbon\CarbonImmutable;
 use Carbon\CarbonPeriod;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
 
 class RolesGenerate extends Command
 {
     protected $signature = 'roles:generate';
 
-    protected $description = 'Generate Roles';
+    protected $description = 'Generate default role assignments for scheduled users';
 
     public function handle(): void
     {
@@ -42,31 +42,46 @@ class RolesGenerate extends Command
             $this->line("The Default Role is {$defaultRole->name}");
 
             foreach ($dateRange as $date) {
-                if ($date->isWeekday()) {
-                    $this->line((string) $date);
-                    $dateString = CarbonImmutable::parse($date)->toDateString();
-
-                    $usersWithRoles = DB::table('role_user')
-                        ->select('user_id')
-                        ->where('date', $dateString)
-                        ->get()
-                        ->pluck('user_id')
-                        ->toArray();
-
-                    $users = $team->members()
-                        ->whereNotIn('users.id', $usersWithRoles)
-                        ->get();
-
-                    foreach ($users as $user) {
-                        if ($user->is_scheduled) {
-                            $user->roles()->attach($defaultRole, ['date' => $dateString]);
-                            $this->line("{$user->name} Given Role Of {$defaultRole->name} For {$dateString}");
-                        } else {
-                            $this->line("{$user->name} is not a scheduled user");
-                        }
-                    }
-                } else {
+                if (! $date->isWeekday()) {
                     $this->line("{$date} Is Weekend");
+
+                    continue;
+                }
+
+                $this->line((string) $date);
+                $dateString = CarbonImmutable::parse($date)->toDateString();
+
+                $usersWithAssignments = RoleAssignment::query()
+                    ->where('team_id', $team->id)
+                    ->whereHas('timeBlock', fn ($query) => $query->where('date', $dateString))
+                    ->pluck('user_id')
+                    ->all();
+
+                $users = $team->members()
+                    ->whereNotIn('users.id', $usersWithAssignments)
+                    ->get();
+
+                foreach ($users as $user) {
+                    if (! $user->is_scheduled) {
+                        $this->line("{$user->name} is not a scheduled user");
+
+                        continue;
+                    }
+
+                    RoleAssignment::createWithTimeBlock(
+                        [
+                            'team_id' => $team->id,
+                            'user_id' => $user->id,
+                            'role_id' => $defaultRole->id,
+                        ],
+                        [
+                            'date'       => $dateString,
+                            'start_time' => $team->work_day_start,
+                            'end_time'   => $team->work_day_end,
+                        ],
+                    );
+
+                    $this->line("{$user->name} Given Role Of {$defaultRole->name} For {$dateString}");
                 }
             }
         });

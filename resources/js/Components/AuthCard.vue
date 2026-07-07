@@ -1,5 +1,5 @@
 <script setup>
-import AppLayout from '@/Layouts/AppLayout.vue';
+import AuthLayout from '@/Layouts/AuthLayout.vue';
 
 defineProps({
     title: {
@@ -10,7 +10,7 @@ defineProps({
 </script>
 
 <template>
-    <AppLayout>
+    <AuthLayout>
         <div class="max-w-md mx-auto">
             <div class="card">
                 <div class="px-6 py-4 border-b border-slate-700/50">
@@ -23,5 +23,5 @@ defineProps({
                 </div>
             </div>
         </div>
-    </AppLayout>
+    </AuthLayout>
 </template>

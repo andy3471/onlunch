@@ -38,6 +38,10 @@ const props = defineProps({
         type: Boolean,
         default: false,
     },
+    step: {
+        type: [String, Number],
+        default: undefined,
+    },
 });
 
 const emit = defineEmits(['update:modelValue']);
@@ -66,6 +70,7 @@ const updateValue = (event) => {
             :disabled="disabled"
             :autocomplete="autocomplete"
             :autofocus="autofocus"
+            :step="step"
             :class="inputClasses"
             @input="updateValue"
         />

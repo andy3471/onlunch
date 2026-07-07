@@ -4,22 +4,16 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use Filament\Models\Contracts\FilamentUser;
-use Filament\Models\Contracts\HasTenants;
-use Filament\Panel;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\Pivot;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Collection;
 
-class User extends Authenticatable implements FilamentUser, HasTenants
+class User extends Authenticatable
 {
     use HasFactory;
     use HasUuids;
@@ -37,7 +31,6 @@ class User extends Authenticatable implements FilamentUser, HasTenants
 
     protected $appends = [
         'deleted',
-        'available_today',
     ];
 
     protected $hidden = [
@@ -45,71 +38,173 @@ class User extends Authenticatable implements FilamentUser, HasTenants
         'remember_token',
     ];
 
-    public function canAccessPanel(Panel $panel): bool
+    /** @return BelongsToMany<Site, $this, SiteUser> */
+    public function sites(): BelongsToMany
     {
-        return $this->is_admin;
+        return $this->belongsToMany(Site::class)
+            ->using(SiteUser::class)
+            ->withPivot([
+                'is_site_admin',
+                'working_hour_preset_id',
+                'onboarding_completed_at',
+                'time_off_requires_approval',
+            ])
+            ->withTimestamps();
     }
 
-    /** @return Collection<int, Team> */
-    public function getTenants(Panel $panel): Collection
-    {
-        return $this->teams;
-    }
-
-    public function canAccessTenant(Model $tenant): bool
-    {
-        return $this->teams()->whereKey($tenant->getKey())->exists();
-    }
-
-    /** @return BelongsToMany<Team, $this, Pivot> */
+    /** @return BelongsToMany<Team, $this, TeamUser> */
     public function teams(): BelongsToMany
     {
-        return $this->belongsToMany(Team::class);
+        return $this->belongsToMany(Team::class)
+            ->using(TeamUser::class)
+            ->withPivot([
+                'is_scheduled',
+                'schedule_visibility',
+                'is_time_off_approver',
+            ])
+            ->withTimestamps();
     }
 
-    /** @return BelongsToMany<Role, $this, Pivot> */
-    public function roles(): BelongsToMany
+    public function siteMembershipFor(Site $site): ?SiteUser
     {
-        return $this->belongsToMany(Role::class)
-            ->withPivot('date');
+        $membership = $this->sites()
+            ->where('sites.id', $site->id)
+            ->first()?->pivot;
+
+        return $membership instanceof SiteUser ? $membership : null;
     }
 
-    /** @return BelongsToMany<LunchSlot, $this, Pivot> */
-    public function lunches(): BelongsToMany
+    public function isSiteAdminFor(Site $site): bool
     {
-        return $this->belongsToMany(LunchSlot::class)
-            ->withPivot('date');
+        return $this->siteMembershipFor($site)?->is_site_admin ?? false;
     }
 
-    public function lunchesForDate(string $date): BelongsToMany
+    public function membershipFor(Team $team): ?TeamUser
     {
-        return $this->lunches()->wherePivot('date', $date);
+        $membership = $this->teams()
+            ->where('teams.id', $team->id)
+            ->first()?->pivot;
+
+        return $membership instanceof TeamUser ? $membership : null;
     }
 
-    public function isAvailableForDate(string $date): bool
+    public function primaryTeamFor(Site $site): ?Team
     {
-        $team = app()->bound('currentTeam') ? resolve('currentTeam') : null;
+        return $this->teams()
+            ->where('site_id', $site->id)
+            ->orderBy('teams.created_at')
+            ->first();
+    }
 
-        if (! $team || ! $team->roles_enabled) {
+    /** @return \Illuminate\Database\Eloquent\Collection<int, Team> */
+    public function teamsForSite(Site $site): \Illuminate\Database\Eloquent\Collection
+    {
+        return $this->teams()
+            ->where('site_id', $site->id)
+            ->get();
+    }
+
+    /** @return \Illuminate\Database\Eloquent\Collection<int, Team> */
+    public function accessibleTeamsFor(Site $site): \Illuminate\Database\Eloquent\Collection
+    {
+        if ($this->isSiteAdminFor($site)) {
+            return $site->teams()->orderBy('name')->get();
+        }
+
+        return $this->teamsForSite($site)->sortBy('name')->values();
+    }
+
+    public function workingHourPresetForSite(Site $site): ?WorkingHourPreset
+    {
+        return $this->siteMembershipFor($site)?->workingHourPreset;
+    }
+
+    public function hasCompletedOnboardingFor(Site $site): bool
+    {
+        return $this->siteMembershipFor($site)?->hasCompletedOnboarding() ?? false;
+    }
+
+    public function requiresTimeOffApproval(Site $site): bool
+    {
+        $membership = $this->siteMembershipFor($site);
+
+        if ($membership?->time_off_requires_approval !== null) {
+            return $membership->time_off_requires_approval;
+        }
+
+        $team = $this->primaryTeamFor($site);
+
+        return $team instanceof Team ? ! $team->time_off_auto_approve : true;
+    }
+
+    public function canApproveTimeOffFor(Team $team): bool
+    {
+        if ($this->isSiteAdminFor($team->site)) {
             return true;
         }
 
-        $roleUser = RoleUser::query()
-            ->where('user_id', $this->id)
-            ->where('date', $date)
-            ->whereHas('role', fn ($query) => $query->where('is_available', true))
-            ->first();
-
-        return $roleUser !== null;
+        return (bool) $this->membershipFor($team)?->is_time_off_approver;
     }
 
-    #[\Illuminate\Database\Eloquent\Attributes\Scope]
-    protected function withLunchesForDate(Builder $query, string $date): Builder
+    public function canAccessTimeOffManagement(Site $site): bool
     {
-        return $query
-            ->with(['lunches' => fn ($q) => $q->wherePivot('date', $date)->orderBy('time')])
-            ->whereHas('lunches', fn ($q) => $q->where('lunch_slot_user.date', $date))
-            ->orderBy('name');
+        if ($this->isSiteAdminFor($site)) {
+            return true;
+        }
+
+        return $this->teams()
+            ->where('site_id', $site->id)
+            ->wherePivot('is_time_off_approver', true)
+            ->exists();
+    }
+
+    /** @return list<string> */
+    public function approverTeamIdsFor(Site $site): array
+    {
+        if ($this->isSiteAdminFor($site)) {
+            return $site->teamIds();
+        }
+
+        return $this->teams()
+            ->where('site_id', $site->id)
+            ->wherePivot('is_time_off_approver', true)
+            ->pluck('teams.id')
+            ->all();
+    }
+
+    public function canManageTaskAssignment(TaskAssignment $assignment): bool
+    {
+        if ($this->id === $assignment->user_id) {
+            return true;
+        }
+
+        $assignment->loadMissing('team.site');
+
+        return $this->isSiteAdminFor($assignment->team->site);
+    }
+
+    /** @return HasMany<TimeBlock, $this> */
+    public function timeBlocks(): HasMany
+    {
+        return $this->hasMany(TimeBlock::class);
+    }
+
+    /** @return HasMany<TaskAssignment, $this> */
+    public function taskAssignments(): HasMany
+    {
+        return $this->hasMany(TaskAssignment::class);
+    }
+
+    /** @return HasMany<TimeOffRequest, $this> */
+    public function timeOffRequests(): HasMany
+    {
+        return $this->hasMany(TimeOffRequest::class);
+    }
+
+    /** @return HasMany<LunchBooking, $this> */
+    public function lunchBookings(): HasMany
+    {
+        return $this->hasMany(LunchBooking::class);
     }
 
     protected function isDeleted(): Attribute
@@ -118,14 +213,6 @@ class User extends Authenticatable implements FilamentUser, HasTenants
             get: function (): bool {
                 return $this->deleted_at !== null;
             }
-        );
-    }
-
-    /** @return Attribute<bool, never> */
-    protected function availableToday(): Attribute
-    {
-        return Attribute::make(
-            get: fn (): bool => $this->isAvailableForDate(\Illuminate\Support\Facades\Date::today()->toDateString())
         );
     }
 

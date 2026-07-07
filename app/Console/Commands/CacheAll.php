@@ -31,7 +31,6 @@ class CacheAll extends Command
             ['icons:cache', 'Caching Icons...'],
             ['event:cache', 'Caching Events...'],
             ['route:cache', 'Caching Routes...'],
-            ['filament:cache-components', 'Caching Filament Components...'],
             ['config:cache', 'Caching Config...'],
             ['view:cache', 'Caching Views...'],
         ];

@@ -1,23 +1,47 @@
 export type HomePageData = {
-lunchSlots: Array<LunchSlotData>;
-initialSlot: number | null;
-available: boolean;
-userLunches: Array<UserLunchData>;
-roles: Array<RoleData>;
+timeBlocks: Array<TimeBlockData>;
+workingHours: WorkingHoursData;
+myLunchBooking: TimeBlockData | null;
+myTaskAssignments: Array<TimeBlockData>;
 selectedDate: string;
+tasks: Array<TaskOptionData>;
+myWorkingHours: WorkingHourPresetData | null;
+scheduleUsers: Array<ScheduleUserData>;
 };
-export type LunchSlotData = {
-id: number;
-time: string;
-available_slots: number;
+export type ScheduleUserData = {
+userId: string;
+userName: string;
 };
-export type RoleData = {
+export type TaskOptionData = {
+id: string;
 name: string;
-role: string;
-available: number;
+color: string | null;
 };
-export type UserLunchData = {
-id: number;
+export type TimeBlockData = {
+id: string;
+type: string;
+userId: string;
+userName: string;
+date: string;
+startTime: string;
+endTime: string;
+taskName: string | null;
+taskColor: string | null;
+status: string | null;
+notes: string | null;
+assignmentId: string | null;
+taskId: string | null;
+lunchBookingId: string | null;
+};
+export type TimeOffRequestStatus = 'pending' | 'approved' | 'rejected';
+export type WorkingHourPresetData = {
+id: string;
 name: string;
-time: string;
+startTime: string;
+endTime: string;
+label: string;
+};
+export type WorkingHoursData = {
+start: string;
+end: string;
 };

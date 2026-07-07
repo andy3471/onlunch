@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Illuminate\Support\Str;
 
 return [
@@ -156,7 +158,11 @@ return [
     |
     */
 
-    'domain' => env('SESSION_DOMAIN', '.'.env('APP_DOMAIN', 'localhost')),
+    'domain' => match (true) {
+        env('SESSION_DOMAIN') !== null                                => env('SESSION_DOMAIN') ?: null,
+        in_array(env('APP_DOMAIN'), ['localhost', '127.0.0.1'], true) => null,
+        default                                                       => '.'.env('APP_DOMAIN'),
+    },
 
     /*
     |--------------------------------------------------------------------------

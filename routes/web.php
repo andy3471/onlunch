@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-use App\Http\Controllers\BrochureController;
-use App\Http\Controllers\Team\RegistrationController;
+use App\Http\Controllers\Brochure\HomeController;
+use App\Http\Controllers\Brochure\SiteRegistrationController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -12,11 +12,11 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 |
 | These routes are loaded on the main domain (lunchrota.app).
-| They serve the public-facing brochure site and team registration.
+| They serve the public-facing brochure site and site registration.
 |
 */
 
-Route::get('/', BrochureController::class)->name('brochure.home');
+Route::get('/', HomeController::class)->name('brochure.home');
 
-Route::get('/register', [RegistrationController::class, 'create'])->name('teams.register');
-Route::post('/register', [RegistrationController::class, 'store'])->name('teams.store');
+Route::get('/register', [SiteRegistrationController::class, 'create'])->name('sites.register');
+Route::post('/register', [SiteRegistrationController::class, 'store'])->name('sites.store');

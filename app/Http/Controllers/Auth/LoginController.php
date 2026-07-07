@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\Site;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -16,7 +17,13 @@ class LoginController extends Controller
 {
     public function create(): Response
     {
-        return Inertia::render('Auth/Login');
+        /** @var Site $site */
+        $site = resolve('currentSite');
+
+        return Inertia::render('Auth/Login', [
+            'registerEnabled'      => $site->register_enabled,
+            'resetPasswordEnabled' => $site->reset_password_enabled,
+        ]);
     }
 
     public function store(Request $request): RedirectResponse

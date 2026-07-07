@@ -4,9 +4,8 @@ import '../css/app.css';
 import { createApp, h } from 'vue';
 import { createInertiaApp } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
-import VCalendar from 'v-calendar';
 
-const appName = import.meta.env.VITE_APP_NAME || 'OnLunch';
+const appName = import.meta.env.VITE_APP_NAME || 'FlexRota';
 
 createInertiaApp({
     title: (title) => title ? `${title} - ${appName}` : appName,
@@ -14,7 +13,6 @@ createInertiaApp({
     setup({ el, App, props, plugin }) {
         return createApp({ render: () => h(App, props) })
             .use(plugin)
-            .use(VCalendar, {})
             .mount(el);
     },
     progress: {

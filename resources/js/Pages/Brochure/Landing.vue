@@ -9,12 +9,12 @@ import BrochureLayout from '@/Layouts/BrochureLayout.vue';
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center max-w-3xl mx-auto">
                     <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-white tracking-tight">
-                        Your team, sorted.
-                        <span class="text-primary-400">OnLunch</span>
+                        Flexible working,
+                        <span class="text-primary-400">sorted.</span>
                     </h1>
                     <p class="mt-6 text-lg text-slate-400 max-w-2xl mx-auto">
-                        From lunch slots to daily roles, OnLunch keeps your team organised
-                        without the hassle. Simple, fast, and designed for teams of any size.
+                        FlexRota helps teams manage roles, time off, and lunch breaks across the day —
+                        free-form scheduling without the hassle.
                     </p>
                     <div class="mt-10 flex items-center justify-center gap-4">
                         <Link
@@ -39,9 +39,9 @@ import BrochureLayout from '@/Layouts/BrochureLayout.vue';
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                         </div>
-                        <h3 class="text-lg font-semibold text-white">Lunch Slots</h3>
+                        <h3 class="text-lg font-semibold text-white">Day Timeline</h3>
                         <p class="mt-2 text-sm text-slate-400">
-                            Define available lunch times and let team members claim their preferred slots. No more double-booking or confusion.
+                            See who's working, on leave, or at lunch across the day. Overlapping entries are fine — your schedule, your way.
                         </p>
                     </div>
 
@@ -51,9 +51,9 @@ import BrochureLayout from '@/Layouts/BrochureLayout.vue';
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
                             </svg>
                         </div>
-                        <h3 class="text-lg font-semibold text-white">Team Roles</h3>
+                        <h3 class="text-lg font-semibold text-white">Role Assignments</h3>
                         <p class="mt-2 text-sm text-slate-400">
-                            Track who's in the office, working from home, or on leave. Lunch availability updates automatically based on roles.
+                            Assign roles for any time chunk — in office, WFH, or away. Admins set working hours and defaults for the team.
                         </p>
                     </div>
 
@@ -63,9 +63,9 @@ import BrochureLayout from '@/Layouts/BrochureLayout.vue';
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                             </svg>
                         </div>
-                        <h3 class="text-lg font-semibold text-white">Admin Panel</h3>
+                        <h3 class="text-lg font-semibold text-white">Time Off Requests</h3>
                         <p class="mt-2 text-sm text-slate-400">
-                            Manage users, roles, and lunch slots through a powerful admin panel. Import and export data with ease.
+                            Request any chunk of the day off. Auto-approve or route through admin — configurable per team.
                         </p>
                     </div>
                 </div>

@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace App\Jobs;
 
-use App\Http\Requests\ChangePasswordRequest;
+use App\Actions\User\ChangePasswordAction;
+use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -18,16 +19,15 @@ class ChangePasswordJob implements ShouldQueue
     use Queueable;
     use SerializesModels;
 
-    // TODO: NEVER pass the request object to the job constructor
-
     public function __construct(
-        public ChangePasswordRequest $request
+        public string $userId,
+        public string $password,
     ) {}
 
-    public function handle(): void
+    public function handle(ChangePasswordAction $changePassword): void
     {
-        $user           = auth()->user();
-        $user->password = bcrypt($this->request->newpassword);
-        $user->save();
+        $user = User::query()->findOrFail($this->userId);
+
+        $changePassword->execute($user, $this->password);
     }
 }

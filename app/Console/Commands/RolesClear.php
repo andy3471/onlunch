@@ -4,20 +4,30 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Models\TimeBlock;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Date;
-use Illuminate\Support\Facades\DB;
 
 class RolesClear extends Command
 {
     protected $signature = 'roles:clear';
 
-    protected $description = 'Clear roles more than 3 weeks old';
+    protected $description = 'Clear schedule entries more than 3 weeks old';
 
     public function handle(): void
     {
-        $date = Date::now()->addWeeks(-3);
-        DB::table('role_user')->where('date', '<', $date)->delete();
-        $this->line('Deleted roles older than '.$date);
+        $cutoff = Date::now()->subWeeks(3)->toDateString();
+
+        $deleted = 0;
+
+        TimeBlock::query()
+            ->where('date', '<', $cutoff)
+            ->with('blockable')
+            ->each(function (TimeBlock $block) use (&$deleted): void {
+                $block->blockable?->delete();
+                $deleted++;
+            });
+
+        $this->line("Deleted {$deleted} entries older than {$cutoff}");
     }
 }

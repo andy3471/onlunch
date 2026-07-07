@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Auth;
 
+use App\Models\Site;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -13,13 +14,15 @@ class AuthenticationTest extends TestCase
 {
     use RefreshDatabase;
 
+    private Site $site;
+
     private Team $team;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->team = Team::factory()->create(['slug' => 'test']);
+        [$this->site, $this->team] = $this->createSiteWithTeam(['slug' => 'test']);
     }
 
     /** Login screen can be rendered on a tenant subdomain. */
@@ -34,7 +37,7 @@ class AuthenticationTest extends TestCase
     public function test_users_can_authenticate_using_the_login_screen(): void
     {
         $user = User::factory()->create();
-        $this->team->members()->attach($user);
+        $this->attachSiteMember($this->site, $this->team, $user);
 
         $response = $this->post('http://test.localhost/login', [
             'email'    => $user->email,
@@ -49,7 +52,7 @@ class AuthenticationTest extends TestCase
     public function test_users_cannot_authenticate_with_invalid_password(): void
     {
         $user = User::factory()->create();
-        $this->team->members()->attach($user);
+        $this->attachSiteMember($this->site, $this->team, $user);
 
         $this->post('http://test.localhost/login', [
             'email'    => $user->email,
@@ -63,7 +66,7 @@ class AuthenticationTest extends TestCase
     public function test_users_can_logout(): void
     {
         $user = User::factory()->create();
-        $this->team->members()->attach($user);
+        $this->attachSiteMember($this->site, $this->team, $user);
 
         $response = $this->actingAs($user)->post('http://test.localhost/logout');
 

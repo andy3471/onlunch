@@ -26,7 +26,30 @@ module.exports = {
       parserOptions: {
         sourceType: 'script'
       }
-    }
+    },
+    {
+      files: ['resources/js/**/*.{js,cjs}'],
+      parserOptions: {
+        project: null,
+      },
+      rules: {
+        '@typescript-eslint/no-floating-promises': 'off',
+        '@typescript-eslint/no-misused-promises': 'off',
+      },
+    },
+    {
+      files: ['resources/js/**/*.{ts,vue}'],
+      rules: {
+        '@typescript-eslint/explicit-function-return-type': ['error', {
+          allowExpressions: true,
+          allowTypedFunctionExpressions: true,
+          allowHigherOrderFunctions: true,
+        }],
+        'vue/block-lang': ['error', {
+          script: { lang: 'ts' },
+        }],
+      },
+    },
   ],
   ignorePatterns: [
     'resources/js/wayfinder/**',

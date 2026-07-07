@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
-use App\Models\Team;
+use App\Models\Site;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -13,12 +13,20 @@ class TenantSubdomainTest extends TestCase
 {
     use RefreshDatabase;
 
-    /** A valid tenant subdomain resolves the team. */
+    public function test_guest_cannot_view_home_page(): void
+    {
+        $this->createSiteWithTeam(['slug' => 'acme']);
+
+        $this->get('http://acme.localhost/')
+            ->assertRedirect('/login');
+    }
+
+    /** A valid tenant subdomain resolves the site. */
     public function test_valid_subdomain_resolves_team(): void
     {
-        $team = Team::factory()->create(['slug' => 'acme']);
-        $user = User::factory()->create();
-        $team->members()->attach($user);
+        [$site, $team] = $this->createSiteWithTeam(['slug' => 'acme']);
+        $user          = User::factory()->create();
+        $this->attachOnboardedMember($site, $team, $user);
 
         $response = $this->actingAs($user)->get('http://acme.localhost/');
 
@@ -36,19 +44,22 @@ class TenantSubdomainTest extends TestCase
     /** Login page loads on a tenant subdomain. */
     public function test_login_page_loads_on_tenant_subdomain(): void
     {
-        Team::factory()->create(['slug' => 'demo']);
+        $this->createSiteWithTeam(['slug' => 'demo']);
 
-        $response = $this->get('http://demo.localhost/login');
-
-        $response->assertStatus(200);
+        $this->get('http://demo.localhost/login')
+            ->assertOk()
+            ->assertInertia(fn ($page) => $page
+                ->component('Auth/Login')
+                ->where('currentSite.slug', 'demo')
+            );
     }
 
     /** Users can authenticate on a tenant subdomain. */
     public function test_user_can_authenticate_on_tenant_subdomain(): void
     {
-        $team = Team::factory()->create(['slug' => 'acme']);
-        $user = User::factory()->create();
-        $team->members()->attach($user);
+        [$site, $team] = $this->createSiteWithTeam(['slug' => 'acme']);
+        $user          = User::factory()->create();
+        $this->attachSiteMember($site, $team, $user);
 
         $this->post('http://acme.localhost/login', [
             'email'    => $user->email,
@@ -61,12 +72,20 @@ class TenantSubdomainTest extends TestCase
     /** The home page shows tenant-scoped data. */
     public function test_home_page_shows_tenant_scoped_data(): void
     {
-        $team = Team::factory()->create(['slug' => 'acme']);
-        $user = User::factory()->create();
-        $team->members()->attach($user);
+        [$site, $team] = $this->createSiteWithTeam(['slug' => 'acme']);
+        $user          = User::factory()->create();
+        $this->attachOnboardedMember($site, $team, $user);
 
         $response = $this->actingAs($user)->get('http://acme.localhost/');
 
         $response->assertStatus(200);
+        $response->assertInertia(fn ($page) => $page
+            ->component('Home')
+            ->has('timeBlocks')
+            ->has('workingHours')
+            ->has('selectedDate')
+            ->has('tasks')
+            ->has('myTaskAssignments')
+        );
     }
 }

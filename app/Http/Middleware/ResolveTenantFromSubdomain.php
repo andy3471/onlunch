@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
-use App\Models\Team;
+use App\Models\Site;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -16,25 +16,18 @@ class ResolveTenantFromSubdomain
         $host   = $request->getHost();
         $domain = config('app.domain');
 
-        // Extract subdomain from host
         $subdomain = str_replace('.'.$domain, '', $host);
 
-        if (! $subdomain || $subdomain === $host) {
-            abort(404);
-        }
+        abort_if(! $subdomain || $subdomain === $host, 404);
 
-        $team = Team::where('slug', $subdomain)->first();
+        $site = Site::where('slug', $subdomain)->first();
 
-        if (! $team) {
-            abort(404);
-        }
+        abort_unless($site, 404);
 
-        // Bind the team to the container so controllers can access it
-        app()->instance('currentTeam', $team);
-        $request->merge(['tenant' => $team]);
+        app()->instance('currentSite', $site);
+        $request->merge(['tenant' => $site]);
 
-        // Share with views
-        view()->share('currentTeam', $team);
+        view()->share('currentSite', $site);
 
         return $next($request);
     }

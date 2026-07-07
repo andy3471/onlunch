@@ -7,9 +7,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\Pivot;
 
 class Team extends Model
 {
@@ -17,43 +17,76 @@ class Team extends Model
     use HasUuids;
 
     protected $fillable = [
+        'site_id',
         'name',
-        'slug',
-        'register_enabled',
-        'reset_password_enabled',
-        'roles_enabled',
-        'lunch_slot_calculated',
-        'lunch_slot_calculated_ratio',
-        'default_role',
+        'tasks_enabled',
+        'time_off_auto_approve',
+        'minimum_available_staff',
+        'default_task',
     ];
 
-    /** @return BelongsToMany<User, $this, Pivot> */
+    /** @return BelongsTo<Site, $this> */
+    public function site(): BelongsTo
+    {
+        return $this->belongsTo(Site::class);
+    }
+
+    /** @return BelongsToMany<User, $this, TeamUser> */
     public function members(): BelongsToMany
     {
-        return $this->belongsToMany(User::class);
+        return $this->belongsToMany(User::class)
+            ->using(TeamUser::class)
+            ->withPivot(['is_scheduled'])
+            ->withTimestamps();
     }
 
-    /** @return HasMany<Role, $this> */
-    public function roles(): HasMany
+    /** @return HasMany<Task, $this> */
+    public function tasks(): HasMany
     {
-        return $this->hasMany(Role::class);
+        return $this->hasMany(Task::class);
     }
 
-    /** @return HasMany<LunchSlot, $this> */
-    public function lunchSlots(): HasMany
+    /** @return array{start: string, end: string} */
+    public function timelineBounds(): array
     {
-        return $this->hasMany(LunchSlot::class);
+        return $this->site->timelineBounds();
+    }
+
+    /** @return HasMany<TimeBlock, $this> */
+    public function timeBlocks(): HasMany
+    {
+        return $this->hasMany(TimeBlock::class);
+    }
+
+    /** @return HasMany<TaskAssignment, $this> */
+    public function taskAssignments(): HasMany
+    {
+        return $this->hasMany(TaskAssignment::class);
+    }
+
+    /** @return HasMany<TimeOffRequest, $this> */
+    public function timeOffRequests(): HasMany
+    {
+        return $this->hasMany(TimeOffRequest::class);
+    }
+
+    /** @return HasMany<LunchBooking, $this> */
+    public function lunchBookings(): HasMany
+    {
+        return $this->hasMany(LunchBooking::class);
+    }
+
+    public function hasMinimumAvailabilityRule(): bool
+    {
+        return $this->minimum_available_staff !== null && $this->minimum_available_staff > 0;
     }
 
     /** @return array<string, string> */
     protected function casts(): array
     {
         return [
-            'register_enabled'            => 'boolean',
-            'reset_password_enabled'      => 'boolean',
-            'roles_enabled'               => 'boolean',
-            'lunch_slot_calculated'       => 'boolean',
-            'lunch_slot_calculated_ratio' => 'decimal:2',
+            'tasks_enabled'         => 'boolean',
+            'time_off_auto_approve' => 'boolean',
         ];
     }
 }

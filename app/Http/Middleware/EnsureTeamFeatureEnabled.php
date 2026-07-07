@@ -12,9 +12,9 @@ class EnsureTeamFeatureEnabled
 {
     public function handle(Request $request, Closure $next, string $feature): Response
     {
-        $team = app()->bound('currentTeam') ? resolve('currentTeam') : null;
+        $site = app()->bound('currentSite') ? resolve('currentSite') : null;
 
-        abort_if(! $team || ! $team->{$feature}, 404);
+        abort_if(! $site || ! $site->{$feature}, 404);
 
         return $next($request);
     }

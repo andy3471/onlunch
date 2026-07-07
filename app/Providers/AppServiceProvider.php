@@ -29,7 +29,9 @@ class AppServiceProvider extends ServiceProvider
     public function bootAuth(): void
     {
         Gate::define('admin', function ($user) {
-            return $user->is_admin;
+            $site = app()->bound('currentSite') ? resolve('currentSite') : null;
+
+            return $site instanceof \App\Models\Site && $user->isSiteAdminFor($site);
         });
     }
 

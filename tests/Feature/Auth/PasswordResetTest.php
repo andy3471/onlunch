@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Auth;
 
+use App\Models\Site;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Auth\Notifications\ResetPassword;
@@ -15,13 +16,15 @@ class PasswordResetTest extends TestCase
 {
     use RefreshDatabase;
 
+    private Site $site;
+
     private Team $team;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->team = Team::factory()->create([
+        [$this->site, $this->team] = $this->createSiteWithTeam([
             'slug'                   => 'test',
             'reset_password_enabled' => true,
         ]);
@@ -41,7 +44,7 @@ class PasswordResetTest extends TestCase
         Notification::fake();
 
         $user = User::factory()->create();
-        $this->team->members()->attach($user);
+        $this->attachSiteMember($this->site, $this->team, $user);
 
         $this->post('http://test.localhost/forgot-password', ['email' => $user->email]);
 
@@ -51,7 +54,7 @@ class PasswordResetTest extends TestCase
     /** Reset password routes return 404 when feature is disabled. */
     public function test_reset_password_returns_404_when_disabled(): void
     {
-        $this->team->update(['reset_password_enabled' => false]);
+        $this->site->update(['reset_password_enabled' => false]);
 
         $response = $this->get('http://test.localhost/forgot-password');
 
