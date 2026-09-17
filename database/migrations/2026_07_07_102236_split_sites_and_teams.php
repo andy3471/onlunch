@@ -24,8 +24,8 @@ return new class extends Migration
     {
         $this->dropTeamForeignKeys();
 
-        Schema::rename('teams', 'sites');
-        Schema::rename('team_user', 'legacy_memberships');
+        $this->renameTable('teams', 'sites');
+        $this->renameTable('team_user', 'legacy_memberships');
 
         $this->dropForeignKeysForColumn('legacy_memberships', 'team_id');
         $this->dropForeignKeysForColumn('legacy_memberships', 'user_id');
@@ -214,8 +214,78 @@ return new class extends Migration
         Schema::drop('team_user');
         Schema::drop('site_user');
         Schema::drop('teams');
-        Schema::rename('legacy_memberships', 'team_user');
-        Schema::rename('sites', 'teams');
+        $this->renameTable('legacy_memberships', 'team_user');
+        $this->renameTable('sites', 'teams');
+    }
+
+    private function renameTable(string $from, string $to): void
+    {
+        Schema::rename($from, $to);
+
+        if (DB::getDriverName() !== 'pgsql') {
+            return;
+        }
+
+        $this->renamePostgresIndexes($from, $to);
+        $this->renamePostgresSequences($from, $to);
+    }
+
+    private function renamePostgresIndexes(string $from, string $to): void
+    {
+        $prefix = $from.'_';
+
+        /** @var list<array{name: string}> $indexes */
+        $indexes = Schema::getIndexes($to);
+
+        foreach ($indexes as $index) {
+            if (! str_starts_with($index['name'], $prefix)) {
+                continue;
+            }
+
+            $newName = $to.mb_substr($index['name'], mb_strlen($from));
+
+            Schema::table($to, function (Blueprint $table) use ($index, $newName): void {
+                $table->renameIndex($index['name'], $newName);
+            });
+        }
+    }
+
+    private function renamePostgresSequences(string $from, string $to): void
+    {
+        $sequences = DB::select(
+            <<<'SQL'
+            select sequence.relname as name
+            from pg_class as sequence
+            inner join pg_depend as depend on depend.objid = sequence.oid and depend.deptype = 'a'
+            inner join pg_class as table_class on table_class.oid = depend.refobjid
+            inner join pg_namespace as namespace on namespace.oid = sequence.relnamespace
+            where sequence.relkind = 'S'
+              and namespace.nspname = current_schema()
+              and table_class.relname = ?
+            SQL,
+            [$to],
+        );
+
+        $prefix = $from.'_';
+
+        foreach ($sequences as $sequence) {
+            if (! str_starts_with($sequence->name, $prefix)) {
+                continue;
+            }
+
+            $newName = $to.mb_substr($sequence->name, mb_strlen($from));
+
+            DB::statement(sprintf(
+                'alter sequence %s rename to %s',
+                $this->quotePostgresName($sequence->name),
+                $this->quotePostgresName($newName),
+            ));
+        }
+    }
+
+    private function quotePostgresName(string $name): string
+    {
+        return '"'.str_replace('"', '""', $name).'"';
     }
 
     private function dropTeamForeignKeys(): void
