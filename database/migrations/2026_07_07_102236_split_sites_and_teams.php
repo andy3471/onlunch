@@ -233,34 +233,40 @@ return new class extends Migration
 
     private function dropForeignKeysForColumn(string $tableName, string $column): void
     {
-        $constraints = DB::table('information_schema.KEY_COLUMN_USAGE')
-            ->where('TABLE_SCHEMA', DB::getDatabaseName())
-            ->where('TABLE_NAME', $tableName)
-            ->where('COLUMN_NAME', $column)
-            ->whereNotNull('REFERENCED_TABLE_NAME')
-            ->pluck('CONSTRAINT_NAME');
+        /** @var list<array{name: string, columns: list<string>}> $foreignKeys */
+        $foreignKeys = Schema::getForeignKeys($tableName);
 
-        foreach ($constraints as $constraint) {
-            Schema::table($tableName, function (Blueprint $table) use ($constraint): void {
-                $table->dropForeign($constraint);
+        foreach ($foreignKeys as $foreignKey) {
+            $columns = array_map(trim(...), $foreignKey['columns']);
+
+            if (! in_array($column, $columns, true)) {
+                continue;
+            }
+
+            Schema::table($tableName, function (Blueprint $table) use ($foreignKey): void {
+                $table->dropForeign($foreignKey['name']);
             });
         }
     }
 
     private function dropUniqueOnColumn(string $tableName, string $column): void
     {
-        $indexes = DB::select(
-            'SHOW INDEX FROM `'.$tableName.'` WHERE Column_name = ? AND Non_unique = 0',
-            [$column],
-        );
+        /** @var list<array{name: string, columns: list<string>, unique: bool, primary: bool}> $indexes */
+        $indexes = Schema::getIndexes($tableName);
 
         foreach ($indexes as $index) {
-            if ($index->Key_name === 'PRIMARY') {
+            if (! $index['unique'] || $index['primary']) {
+                continue;
+            }
+
+            $columns = array_map(trim(...), $index['columns']);
+
+            if (! in_array($column, $columns, true)) {
                 continue;
             }
 
             Schema::table($tableName, function (Blueprint $table) use ($index): void {
-                $table->dropIndex($index->Key_name);
+                $table->dropUnique($index['name']);
             });
         }
     }
