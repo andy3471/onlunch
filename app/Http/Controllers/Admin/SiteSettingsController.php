@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
-use App\Actions\Teams\UpdateTeamSettingsAction;
+use App\Actions\Sites\UpdateSiteSettingsAction;
+use App\DataTransferObjects\WorkingHourPresetData;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Admin\UpdateTeamSettingsRequest;
+use App\Http\Requests\Admin\UpdateSiteSettingsRequest;
 use App\Models\Site;
 use App\Models\Team;
-use App\Models\WorkingHourPreset;
-use App\Support\TimeInput;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -18,28 +17,23 @@ use Inertia\Response;
 class SiteSettingsController extends Controller
 {
     public function __construct(
-        private readonly UpdateTeamSettingsAction $updateTeamSettings,
+        private readonly UpdateSiteSettingsAction $updateSiteSettings,
     ) {}
 
-    public function show(): Response
+    public function show(Site $site): Response
     {
-        /** @var Site $site */
-        $site = resolve('currentSite');
         $team = $site->defaultTeam();
 
         abort_unless($team instanceof Team, 404);
 
-        $presets = $site->workingHourPresets->map(fn (WorkingHourPreset $preset): array => [
-            'id'        => $preset->id,
-            'name'      => $preset->name,
-            'startTime' => TimeInput::normalize((string) $preset->getRawOriginal('start_time')),
-            'endTime'   => TimeInput::normalize((string) $preset->getRawOriginal('end_time')),
-            'label'     => $preset->label(),
-        ]);
+        $presets = $site->workingHourPresets
+            ->map(fn ($preset): WorkingHourPresetData => WorkingHourPresetData::fromModel($preset))
+            ->values()
+            ->all();
 
         $taskOptions = $team->tasks->pluck('name')->all();
 
-        return Inertia::render('Admin/TeamSettings', [
+        return Inertia::render('Admin/SiteSettings', [
             'siteName' => $site->name,
             'settings' => [
                 'workingHourPresets'   => $presets,
@@ -52,16 +46,14 @@ class SiteSettingsController extends Controller
         ]);
     }
 
-    public function update(UpdateTeamSettingsRequest $request): RedirectResponse
+    public function update(UpdateSiteSettingsRequest $request, Site $site): RedirectResponse
     {
-        /** @var Site $site */
-        $site      = resolve('currentSite');
         $team      = $site->defaultTeam();
         $validated = $request->validated();
 
         abort_unless($team instanceof Team, 404);
 
-        $this->updateTeamSettings->execute(
+        $this->updateSiteSettings->execute(
             $site,
             $team,
             [
@@ -75,6 +67,6 @@ class SiteSettingsController extends Controller
             $validated['working_hour_presets'],
         );
 
-        return redirect('/manage/settings')->with('message', 'Team settings saved.');
+        return redirect()->route('manage.settings.show')->with('message', 'Site settings saved.');
     }
 }

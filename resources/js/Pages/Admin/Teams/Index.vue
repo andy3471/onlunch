@@ -3,16 +3,11 @@ import { Link } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import AdminNav from '@/Components/AdminNav.vue';
 import Button from '@/Components/Button.vue';
-
-type TeamRow = {
-    id: string;
-    name: string;
-    minimumAvailableStaff: number | null;
-    tasksEnabled: boolean;
-};
+import type { TeamRowData } from '@/Types/generated';
+import { create, edit } from '@/routes/manage/teams';
 
 defineProps<{
-    teams: TeamRow[];
+    teams: TeamRowData[];
 }>();
 </script>
 
@@ -26,7 +21,7 @@ defineProps<{
                     <h2 class="text-lg font-semibold text-slate-100">Teams</h2>
                     <p class="text-sm text-slate-400 mt-1">Organisational subgroups within this site.</p>
                 </div>
-                <Link href="/manage/teams/create">
+                <Link :href="create.url()">
                     <Button>Create team</Button>
                 </Link>
             </div>
@@ -55,7 +50,7 @@ defineProps<{
                                 {{ team.tasksEnabled ? 'Tasks on' : 'Tasks off' }}
                             </span>
                             <Link
-                                :href="`/manage/teams/${team.id}/edit`"
+                                :href="edit.url({ team: team.id })"
                                 class="text-sm text-primary-400 hover:text-primary-300"
                             >
                                 Edit

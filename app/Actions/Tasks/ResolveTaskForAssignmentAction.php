@@ -8,12 +8,13 @@ use App\Actions\Concerns\AsAction;
 use App\Models\Task;
 use App\Models\Team;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class ResolveTaskForAssignmentAction
 {
     use AsAction;
 
-    public function execute(Team $team, string $taskName): ?string
+    public function execute(Team $team, string $taskName, bool $allowCreate = false): ?string
     {
         $normalized = mb_trim($taskName);
 
@@ -27,6 +28,12 @@ class ResolveTaskForAssignmentAction
 
         if ($existing !== null) {
             return $existing->id;
+        }
+
+        if (! $allowCreate) {
+            throw ValidationException::withMessages([
+                'task_name' => __('Unknown task. Ask a site admin to create it first.'),
+            ]);
         }
 
         return Task::query()->create([

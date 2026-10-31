@@ -1,33 +1,27 @@
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { TransitionRoot } from '@headlessui/vue';
+import type { ToastType } from '@/Types/toast';
 
-const props = defineProps({
-    message: {
-        type: String,
-        required: true,
-    },
-    type: {
-        type: String,
-        default: 'success',
-        validator: (value) => ['success', 'error', 'warning', 'info'].includes(value),
-    },
-    duration: {
-        type: Number,
-        default: 5000,
-    },
+const props = withDefaults(defineProps<{
+    message: string;
+    type?: ToastType;
+    duration?: number;
+}>(), {
+    type: 'success',
+    duration: 5000,
 });
 
 const show = ref(true);
 
-const typeStyles = {
+const typeStyles: Record<ToastType, string> = {
     success: 'bg-emerald-600 border-emerald-500',
     error: 'bg-red-600 border-red-500',
     warning: 'bg-amber-600 border-amber-500',
     info: 'bg-blue-600 border-blue-500',
 };
 
-const icons = {
+const icons: Record<ToastType, string> = {
     success: 'M5 13l4 4L19 7',
     error: 'M6 18L18 6M6 6l12 12',
     warning: 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z',
@@ -42,7 +36,7 @@ onMounted(() => {
     }
 });
 
-const close = () => {
+const close = (): void => {
     show.value = false;
 };
 </script>

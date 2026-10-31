@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\User;
 
-use App\Actions\User\ChangePasswordAction;
+use App\Actions\Users\ChangePasswordAction;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ChangePasswordRequest;
 use App\Models\User;
@@ -31,6 +31,6 @@ class PasswordController extends Controller
 
         $this->changePassword->execute($user, $request->validated('newpassword'));
 
-        return redirect('/')->with('message', 'Password Changed');
+        return redirect()->route('home')->with('message', 'Password Changed');
     }
 }

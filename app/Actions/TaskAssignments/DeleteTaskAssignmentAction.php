@@ -14,8 +14,6 @@ class DeleteTaskAssignmentAction
 
     public function execute(User $actor, TaskAssignment $assignment): string
     {
-        abort_unless($actor->canManageTaskAssignment($assignment), 403);
-
         $assignment->loadMissing('timeBlock');
         $date = $assignment->timeBlock?->date->toDateString() ?? today()->toDateString();
 

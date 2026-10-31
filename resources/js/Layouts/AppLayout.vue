@@ -1,20 +1,25 @@
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import { Disclosure, DisclosureButton, DisclosurePanel, Menu, MenuButton, MenuItem, MenuItems, TransitionRoot } from '@headlessui/vue';
 import AppLogo from '@/Components/AppLogo.vue';
 import Toast from '@/Components/Toast.vue';
+import { home, login, register, logout } from '@/routes/index';
+import { index as manageUsersIndex } from '@/routes/manage/users';
+import { index as timeOffRequestsIndex } from '@/routes/manage/time-off-requests';
+import { show as settingsShow } from '@/routes/settings';
+import { change as changePasswordShow } from '@/routes/password';
 
 const page = usePage();
 
-const auth = computed(() => page.props.auth || { user: null });
-const config = computed(() => page.props.config || {});
-const flash = computed(() => page.props.flash || {});
-const currentSite = computed(() => page.props.currentSite || null);
-const userSites = computed(() => page.props.userSites || []);
+const auth = computed(() => page.props.auth);
+const config = computed(() => page.props.config);
+const flash = computed(() => page.props.flash);
+const currentSite = computed(() => page.props.currentSite);
+const userSites = computed(() => page.props.userSites);
 const otherSites = computed(() => userSites.value.filter((site) => !site.isCurrent));
 
-const currentPath = computed(() => page.url.split('?')[0]);
+const currentPath = computed(() => page.url.split('?')[0] ?? '');
 const isDashboard = computed(() => currentPath.value === '/');
 const isManage = computed(() => currentPath.value.startsWith('/manage'));
 const isTimeOffManage = computed(() => currentPath.value.startsWith('/manage/time-off-requests'));
@@ -22,12 +27,12 @@ const showManageLink = computed(() => auth.value.user?.is_admin ?? false);
 const showTimeOffLink = computed(() => {
     const user = auth.value.user;
 
-    return user?.can_manage_time_off && !user?.is_admin;
+    return Boolean(user?.can_manage_time_off && !user.is_admin);
 });
 
-const userInitial = computed(() => auth.value.user?.name?.charAt(0)?.toUpperCase() ?? '?');
+const userInitial = computed(() => auth.value.user?.name.charAt(0).toUpperCase() ?? '?');
 
-const navLinkClass = (active) => (active ? 'nav-link nav-link-active' : 'nav-link');
+const navLinkClass = (active: boolean): string => (active ? 'nav-link nav-link-active' : 'nav-link');
 </script>
 
 <template>
@@ -37,7 +42,7 @@ const navLinkClass = (active) => (active ? 'nav-link nav-link-active' : 'nav-lin
                 <Disclosure v-slot="{ open, close }">
                     <div class="flex items-center justify-between h-14 gap-4">
                         <div class="flex items-center gap-5 min-w-0">
-                            <Link href="/" class="flex items-center gap-3 min-w-0 group">
+                            <Link :href="home.url()" class="flex items-center gap-3 min-w-0 group">
                                 <AppLogo />
                                 <div class="min-w-0 leading-tight">
                                     <p class="text-sm font-semibold text-white truncate group-hover:text-primary-100 transition-colors">
@@ -50,19 +55,19 @@ const navLinkClass = (active) => (active ? 'nav-link nav-link-active' : 'nav-lin
                             </Link>
 
                             <nav v-if="auth.user" class="hidden md:flex items-center gap-0.5">
-                                <Link href="/" :class="navLinkClass(isDashboard)">
+                                <Link :href="home.url()" :class="navLinkClass(isDashboard)">
                                     Schedule
                                 </Link>
                                 <Link
                                     v-if="showManageLink"
-                                    href="/manage/users"
+                                    :href="manageUsersIndex.url()"
                                     :class="navLinkClass(isManage)"
                                 >
                                     Manage
                                 </Link>
                                 <Link
                                     v-if="showTimeOffLink"
-                                    href="/manage/time-off-requests"
+                                    :href="timeOffRequestsIndex.url()"
                                     :class="navLinkClass(isTimeOffManage)"
                                 >
                                     Time off
@@ -120,7 +125,7 @@ const navLinkClass = (active) => (active ? 'nav-link nav-link-active' : 'nav-lin
                                             </template>
                                             <MenuItem v-slot="{ active }">
                                                 <Link
-                                                    href="/settings"
+                                                    :href="settingsShow.url()"
                                                     :class="[active ? 'bg-white/10 text-white' : 'text-slate-300', 'block px-4 py-2 text-sm']"
                                                 >
                                                     Settings
@@ -128,7 +133,7 @@ const navLinkClass = (active) => (active ? 'nav-link nav-link-active' : 'nav-lin
                                             </MenuItem>
                                             <MenuItem v-slot="{ active }">
                                                 <Link
-                                                    href="/change-password"
+                                                    :href="changePasswordShow.url()"
                                                     :class="[active ? 'bg-white/10 text-white' : 'text-slate-300', 'block px-4 py-2 text-sm']"
                                                 >
                                                     Change password
@@ -136,7 +141,7 @@ const navLinkClass = (active) => (active ? 'nav-link nav-link-active' : 'nav-lin
                                             </MenuItem>
                                             <MenuItem v-slot="{ active }">
                                                 <Link
-                                                    href="/logout"
+                                                    :href="logout.url()"
                                                     method="post"
                                                     as="button"
                                                     type="button"
@@ -150,12 +155,12 @@ const navLinkClass = (active) => (active ? 'nav-link nav-link-active' : 'nav-lin
                                 </Menu>
                             </template>
                             <template v-else>
-                                <Link href="/login" class="nav-link">
+                                <Link :href="login.url()" class="nav-link">
                                     Log in
                                 </Link>
                                 <Link
                                     v-if="config.registerEnabled"
-                                    href="/register"
+                                    :href="register.url()"
                                     class="btn btn-primary text-sm px-4 py-1.5"
                                 >
                                     Register
@@ -186,7 +191,7 @@ const navLinkClass = (active) => (active ? 'nav-link nav-link-active' : 'nav-lin
                     <DisclosurePanel class="md:hidden py-2 border-t border-white/5 space-y-0.5">
                         <template v-if="auth.user">
                             <Link
-                                href="/"
+                                :href="home.url()"
                                 :class="[navLinkClass(isDashboard), 'block mx-1']"
                                 @click="close"
                             >
@@ -194,7 +199,7 @@ const navLinkClass = (active) => (active ? 'nav-link nav-link-active' : 'nav-lin
                             </Link>
                             <Link
                                 v-if="showManageLink"
-                                href="/manage/users"
+                                :href="manageUsersIndex.url()"
                                 :class="[navLinkClass(isManage), 'block mx-1']"
                                 @click="close"
                             >
@@ -202,7 +207,7 @@ const navLinkClass = (active) => (active ? 'nav-link nav-link-active' : 'nav-lin
                             </Link>
                             <Link
                                 v-if="showTimeOffLink"
-                                href="/manage/time-off-requests"
+                                :href="timeOffRequestsIndex.url()"
                                 :class="[navLinkClass(isTimeOffManage), 'block mx-1']"
                                 @click="close"
                             >
@@ -217,14 +222,14 @@ const navLinkClass = (active) => (active ? 'nav-link nav-link-active' : 'nav-lin
                             >
                                 Switch to {{ site.name }}
                             </a>
-                            <Link href="/settings" class="block mx-1 nav-link" @click="close">
+                            <Link :href="settingsShow.url()" class="block mx-1 nav-link" @click="close">
                                 Settings
                             </Link>
-                            <Link href="/change-password" class="block mx-1 nav-link" @click="close">
+                            <Link :href="changePasswordShow.url()" class="block mx-1 nav-link" @click="close">
                                 Change password
                             </Link>
                             <Link
-                                href="/logout"
+                                :href="logout.url()"
                                 method="post"
                                 as="button"
                                 type="button"
@@ -235,12 +240,12 @@ const navLinkClass = (active) => (active ? 'nav-link nav-link-active' : 'nav-lin
                             </Link>
                         </template>
                         <template v-else>
-                            <Link href="/login" class="block mx-1 nav-link" @click="close">
+                            <Link :href="login.url()" class="block mx-1 nav-link" @click="close">
                                 Log in
                             </Link>
                             <Link
                                 v-if="config.registerEnabled"
-                                href="/register"
+                                :href="register.url()"
                                 class="block mx-1 nav-link"
                                 @click="close"
                             >

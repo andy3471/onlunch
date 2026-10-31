@@ -27,8 +27,8 @@ class ApproveTimeOffRequestAction
             $this->assertMinimumAvailability->execute(
                 $request->team,
                 $block->date->toDateString(),
-                mb_substr((string) $block->getRawOriginal('start_time'), 0, 5),
-                mb_substr((string) $block->getRawOriginal('end_time'), 0, 5),
+                $block->start_time,
+                $block->end_time,
                 $request->user_id,
             );
         }

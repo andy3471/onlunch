@@ -11,6 +11,7 @@ use App\Models\TaskAssignment;
 use App\Models\Team;
 use App\Models\User;
 use App\Support\TimeInput;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class UpdateTaskAssignmentAction
 {
@@ -29,12 +30,12 @@ class UpdateTaskAssignmentAction
         string $endTime,
         ?string $taskId,
     ): TaskAssignment {
-        abort_unless($actor->canManageTaskAssignment($assignment), 403);
-
         $assignment->loadMissing('timeBlock');
         $block = $assignment->timeBlock;
 
-        abort_if($block === null, 404);
+        if ($block === null) {
+            throw (new ModelNotFoundException)->setModel(TaskAssignment::class, [$assignment->id]);
+        }
 
         if ($taskId === null) {
             $this->assertMinimumAvailability->execute(

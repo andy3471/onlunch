@@ -3,7 +3,9 @@ import { ref, computed } from 'vue';
 import { usePage, router } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import DayTimeline from '@/Components/DayTimeline.vue';
+import { toLocalDateString } from '@/Composables/useScheduleTime';
 import type { HomePageData } from '@/Types/generated';
+import { home } from '@/routes/index';
 
 const props = defineProps<HomePageData>();
 
@@ -23,12 +25,7 @@ const isToday = computed(() => {
         return false;
     }
 
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const day = String(today.getDate()).padStart(2, '0');
-
-    return `${year}-${month}-${day}` === props.selectedDate;
+    return toLocalDateString(new Date()) === props.selectedDate;
 });
 
 const handleDateChange = (dateString: string): void => {
@@ -38,7 +35,7 @@ const handleDateChange = (dateString: string): void => {
 
     dateLoading.value = true;
 
-    router.get('/', { date: dateString }, {
+    router.get(home.url(), { date: dateString }, {
         preserveScroll: true,
         only: [
             'timeBlocks',

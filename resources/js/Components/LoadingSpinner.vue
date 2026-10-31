@@ -1,9 +1,8 @@
-<script setup>
-defineProps({
-    text: {
-        type: String,
-        default: 'Loading...',
-    },
+<script setup lang="ts">
+withDefaults(defineProps<{
+    text?: string;
+}>(), {
+    text: 'Loading...',
 });
 </script>
 

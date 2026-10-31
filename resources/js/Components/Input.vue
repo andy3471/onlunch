@@ -1,58 +1,41 @@
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue';
 
-const props = defineProps({
-    modelValue: {
-        type: [String, Number],
-        default: '',
-    },
-    type: {
-        type: String,
-        default: 'text',
-    },
-    label: {
-        type: String,
-        default: '',
-    },
-    error: {
-        type: String,
-        default: '',
-    },
-    placeholder: {
-        type: String,
-        default: '',
-    },
-    required: {
-        type: Boolean,
-        default: false,
-    },
-    disabled: {
-        type: Boolean,
-        default: false,
-    },
-    autocomplete: {
-        type: String,
-        default: '',
-    },
-    autofocus: {
-        type: Boolean,
-        default: false,
-    },
-    step: {
-        type: [String, Number],
-        default: undefined,
-    },
+const props = withDefaults(defineProps<{
+    modelValue?: string | number;
+    type?: string;
+    label?: string;
+    error?: string;
+    placeholder?: string;
+    required?: boolean;
+    disabled?: boolean;
+    autocomplete?: string;
+    autofocus?: boolean;
+    step?: string | number;
+}>(), {
+    modelValue: '',
+    type: 'text',
+    label: '',
+    error: '',
+    placeholder: '',
+    required: false,
+    disabled: false,
+    autocomplete: '',
+    autofocus: false,
+    step: undefined,
 });
 
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits<{
+    'update:modelValue': [value: string];
+}>();
 
 const inputClasses = computed(() => [
     'input',
     props.error ? 'input-error' : '',
 ]);
 
-const updateValue = (event) => {
-    emit('update:modelValue', event.target.value);
+const updateValue = (event: Event): void => {
+    emit('update:modelValue', (event.target as HTMLInputElement).value);
 };
 </script>
 

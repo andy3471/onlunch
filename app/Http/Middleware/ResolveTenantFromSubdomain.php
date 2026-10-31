@@ -7,6 +7,7 @@ namespace App\Http\Middleware;
 use App\Models\Site;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\URL;
 use Symfony\Component\HttpFoundation\Response;
 
 class ResolveTenantFromSubdomain
@@ -25,7 +26,9 @@ class ResolveTenantFromSubdomain
         abort_unless($site, 404);
 
         app()->instance('currentSite', $site);
-        $request->merge(['tenant' => $site]);
+        app()->instance(Site::class, $site);
+        $request->attributes->set('tenant', $site);
+        URL::defaults(['tenant' => $site->slug]);
 
         view()->share('currentSite', $site);
 

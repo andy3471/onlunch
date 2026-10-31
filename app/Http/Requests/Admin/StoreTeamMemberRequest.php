@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Requests\Admin;
 
 use App\Models\Site;
+use App\Models\User;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Password;
@@ -15,8 +16,7 @@ class StoreTeamMemberRequest extends FormRequest
 
     public function authorize(): bool
     {
-        /** @var Site|null $site */
-        $site = app()->bound('currentSite') ? resolve('currentSite') : null;
+        $site = app()->bound(Site::class) ? app(Site::class) : null;
 
         return $site instanceof Site && $this->user()?->isSiteAdminFor($site);
     }
@@ -24,13 +24,18 @@ class StoreTeamMemberRequest extends FormRequest
     /** @return array<string, mixed> */
     public function rules(): array
     {
-        /** @var Site $site */
-        $site = resolve('currentSite');
+        $site           = app(Site::class);
+        $existingUser   = User::query()->where('email', $this->input('email'))->exists();
 
         return [
-            'name'     => ['required', 'string', 'max:255'],
-            'email'    => ['required', 'email', 'max:255', 'unique:users,email'],
-            'password' => ['required', 'string', 'confirmed', Password::min(8)->mixedCase()->numbers()->symbols()->uncompromised()],
+            'name'     => [$existingUser ? 'nullable' : 'required', 'string', 'max:255'],
+            'email'    => ['required', 'email', 'max:255'],
+            'password' => [
+                $existingUser ? 'nullable' : 'required',
+                'string',
+                'confirmed',
+                Password::defaults(),
+            ],
             'is_admin' => ['required', 'boolean'],
             ...$this->siteMemberRules($site),
             ...$this->teamMembershipRules(),
@@ -39,9 +44,6 @@ class StoreTeamMemberRequest extends FormRequest
 
     public function withValidator(Validator $validator): void
     {
-        /** @var Site $site */
-        $site = resolve('currentSite');
-
-        $this->validateTeamMemberships($validator, $site);
+        $this->validateTeamMemberships($validator, app(Site::class));
     }
 }

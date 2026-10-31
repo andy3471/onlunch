@@ -21,9 +21,14 @@ class DeleteLunchBookingAction
             return;
         }
 
+        $this->deleteForTeamUserDate($team->id, $user->id, $date);
+    }
+
+    public function deleteForTeamUserDate(string $teamId, string $userId, string $date): void
+    {
         LunchBooking::query()
-            ->where('team_id', $team->id)
-            ->where('user_id', $user->id)
+            ->where('team_id', $teamId)
+            ->where('user_id', $userId)
             ->whereHas('timeBlock', fn ($query) => $query->where('date', $date))
             ->each(fn (LunchBooking $booking) => $booking->delete());
     }

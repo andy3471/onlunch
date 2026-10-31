@@ -90,13 +90,7 @@ class BuildHomePageAction
             $preset = $user->workingHourPresetForSite($site);
 
             if ($preset instanceof \App\Models\WorkingHourPreset) {
-                $myWorkingHours = WorkingHourPresetData::from([
-                    'id'        => $preset->id,
-                    'name'      => $preset->name,
-                    'startTime' => mb_substr((string) $preset->getRawOriginal('start_time'), 0, 5),
-                    'endTime'   => mb_substr((string) $preset->getRawOriginal('end_time'), 0, 5),
-                    'label'     => $preset->label(),
-                ]);
+                $myWorkingHours = WorkingHourPresetData::fromModel($preset);
             }
         }
 

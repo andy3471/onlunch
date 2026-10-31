@@ -5,6 +5,8 @@ import AppLayout from '@/Layouts/AppLayout.vue';
 import AdminNav from '@/Components/AdminNav.vue';
 import Button from '@/Components/Button.vue';
 import Toast from '@/Components/Toast.vue';
+import { useToast } from '@/Composables/useToast';
+import { destroy as destroyTask, index as tasksIndex, store, update } from '@/routes/manage/tasks';
 
 type TaskFormData = {
     id: string;
@@ -21,7 +23,7 @@ const isEditing = computed(() => props.task !== null);
 const name = ref(props.task?.name ?? '');
 const color = ref(props.task?.color ?? '#6366f1');
 const submitting = ref(false);
-const toast = ref<{ type: string; message: string } | null>(null);
+const { toast, showSuccess, showFirstError } = useToast();
 
 const submit = () => {
     submitting.value = true;
@@ -29,14 +31,10 @@ const submit = () => {
     const options = {
         preserveScroll: true,
         onSuccess: () => {
-            toast.value = { type: 'success', message: isEditing.value ? 'Task updated.' : 'Task created.' };
+            showSuccess(isEditing.value ? 'Task updated.' : 'Task created.');
         },
-        onError: (errors: Record<string, string | string[]>) => {
-            const firstError = Object.values(errors)[0];
-            toast.value = {
-                type: 'error',
-                message: Array.isArray(firstError) ? firstError[0] : 'Could not save task.',
-            };
+        onError: (errors: Record<string, string>) => {
+            showFirstError(errors, 'Could not save task.');
         },
         onFinish: () => {
             submitting.value = false;
@@ -46,9 +44,9 @@ const submit = () => {
     const payload = { name: name.value, color: color.value || null };
 
     if (isEditing.value && props.task) {
-        router.put(`/manage/tasks/${props.task.id}`, payload, options);
+        router.put(update.url({ task: props.task.id }), payload, options);
     } else {
-        router.post('/manage/tasks', payload, options);
+        router.post(store.url(), payload, options);
     }
 };
 
@@ -57,7 +55,7 @@ const destroy = () => {
         return;
     }
 
-    router.delete(`/manage/tasks/${props.task.id}`);
+    router.delete(destroyTask.url({ task: props.task.id }));
 };
 </script>
 
@@ -86,7 +84,7 @@ const destroy = () => {
                 <Button class="flex-1" :disabled="submitting" @click="submit">
                     {{ isEditing ? 'Save changes' : 'Create task' }}
                 </Button>
-                <Link href="/manage/tasks" class="text-sm text-slate-400 hover:text-slate-300">
+                <Link :href="tasksIndex.url()" class="text-sm text-slate-400 hover:text-slate-300">
                     Cancel
                 </Link>
             </div>

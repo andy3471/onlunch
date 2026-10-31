@@ -7,11 +7,15 @@ namespace App\Models;
 use App\Enums\TimeOffRequestStatus;
 use App\Models\Concerns\HasTimeBlock;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class TimeOffRequest extends Model
 {
+    /** @use HasFactory<\Database\Factories\TimeOffRequestFactory> */
+    use HasFactory;
+
     use HasTimeBlock;
     use HasUuids;
 

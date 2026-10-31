@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Admin;
 
+use App\Enums\ScheduleVisibility;
+use App\Enums\TimeOffApprovalMode;
 use App\Models\Site;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Validation\Rule;
@@ -17,7 +19,7 @@ trait ValidatesTeamMemberships
             'team_memberships'                         => ['required', 'array', 'min:1'],
             'team_memberships.*.team_id'               => ['required', 'uuid'],
             'team_memberships.*.is_scheduled'          => ['required', 'boolean'],
-            'team_memberships.*.schedule_visibility'   => ['required', Rule::in(['everyone', 'team', 'approvers', 'private'])],
+            'team_memberships.*.schedule_visibility'   => ['required', Rule::enum(ScheduleVisibility::class)],
             'team_memberships.*.is_time_off_approver'  => ['required', 'boolean'],
         ];
     }
@@ -62,7 +64,7 @@ trait ValidatesTeamMemberships
                 'uuid',
                 Rule::exists('working_hour_presets', 'id')->where('site_id', $site->id),
             ],
-            'time_off_approval' => ['required', Rule::in(['site_default', 'required', 'auto'])],
+            'time_off_approval' => ['required', Rule::enum(TimeOffApprovalMode::class)],
         ];
     }
 }

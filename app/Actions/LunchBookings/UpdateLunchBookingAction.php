@@ -11,6 +11,7 @@ use App\Models\LunchBooking;
 use App\Models\Site;
 use App\Models\User;
 use App\Support\TimeInput;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class UpdateLunchBookingAction
 {
@@ -28,12 +29,12 @@ class UpdateLunchBookingAction
         string $startTime,
         string $endTime,
     ): LunchBooking {
-        abort_unless($booking->user_id === $user->id, 403);
-
         $booking->loadMissing('timeBlock');
         $block = $booking->timeBlock;
 
-        abort_if($block === null, 404);
+        if ($block === null) {
+            throw (new ModelNotFoundException)->setModel(LunchBooking::class, [$booking->id]);
+        }
 
         $this->assertTeamsAvailability->execute(
             $site,

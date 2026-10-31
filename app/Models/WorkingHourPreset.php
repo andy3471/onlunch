@@ -4,13 +4,18 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class WorkingHourPreset extends Model
 {
+    /** @use HasFactory<\Database\Factories\WorkingHourPresetFactory> */
+    use HasFactory;
+
     use HasUuids;
 
     protected $fillable = [
@@ -35,9 +40,22 @@ class WorkingHourPreset extends Model
 
     public function label(): string
     {
-        $start = mb_substr((string) $this->getRawOriginal('start_time'), 0, 5);
-        $end   = mb_substr((string) $this->getRawOriginal('end_time'), 0, 5);
+        return "{$this->name} ({$this->start_time}–{$this->end_time})";
+    }
 
-        return "{$this->name} ({$start}–{$end})";
+    /** @return Attribute<string, never> */
+    protected function startTime(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value): string => mb_substr((string) $value, 0, 5),
+        );
+    }
+
+    /** @return Attribute<string, never> */
+    protected function endTime(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value): string => mb_substr((string) $value, 0, 5),
+        );
     }
 }

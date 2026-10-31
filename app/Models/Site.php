@@ -65,15 +65,8 @@ class Site extends Model
         return $this->teams()->orderBy('created_at')->first();
     }
 
-    /** @param  list<string>  $teamIds
-     * @return array{start: string, end: string}
-     */
-    public function timelineBoundsForTeams(array $teamIds): array
-    {
-        return $this->timelineBounds();
-    }
-
-    /** @param  \Illuminate\Support\Collection<int, WorkingHourPreset>|\Illuminate\Database\Eloquent\Collection<int, WorkingHourPreset>  $presets
+    /**
+     * @param  \Illuminate\Support\Collection<int, WorkingHourPreset>|\Illuminate\Database\Eloquent\Collection<int, WorkingHourPreset>  $presets
      * @return array{start: string, end: string}
      */
     protected function boundsFromPresets($presets): array
@@ -82,8 +75,8 @@ class Site extends Model
             return ['start' => '09:00', 'end' => '17:00'];
         }
 
-        $starts = $presets->map(fn (WorkingHourPreset $preset): string => mb_substr((string) $preset->getRawOriginal('start_time'), 0, 5));
-        $ends   = $presets->map(fn (WorkingHourPreset $preset): string => mb_substr((string) $preset->getRawOriginal('end_time'), 0, 5));
+        $starts = $presets->map(fn (WorkingHourPreset $preset): string => $preset->start_time);
+        $ends   = $presets->map(fn (WorkingHourPreset $preset): string => $preset->end_time);
 
         return [
             'start' => $starts->min(),

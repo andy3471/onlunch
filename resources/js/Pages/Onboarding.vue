@@ -4,6 +4,7 @@ import { router, usePage } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import Button from '@/Components/Button.vue';
 import type { WorkingHourPresetData } from '@/Types/generated';
+import { store as storeOnboarding } from '@/routes/onboarding';
 
 const props = defineProps<{
     presets: WorkingHourPresetData[];
@@ -20,7 +21,7 @@ const submit = () => {
 
     submitting.value = true;
 
-    router.post('/onboarding', {
+    router.post(storeOnboarding.url(), {
         working_hour_preset_id: selectedPresetId.value,
     }, {
         onFinish: () => {

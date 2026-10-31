@@ -10,6 +10,7 @@ use App\Actions\Schedule\AssertNoScheduleOverlapAction;
 use App\Models\LunchBooking;
 use App\Models\Site;
 use App\Models\User;
+use Illuminate\Auth\Access\AuthorizationException;
 
 class StoreLunchBookingAction
 {
@@ -18,6 +19,7 @@ class StoreLunchBookingAction
     public function __construct(
         private readonly AssertTeamsAvailabilityForUserAction $assertTeamsAvailability,
         private readonly AssertNoScheduleOverlapAction $assertNoScheduleOverlap,
+        private readonly DeleteLunchBookingAction $deleteLunchBooking,
     ) {}
 
     public function execute(
@@ -29,7 +31,9 @@ class StoreLunchBookingAction
     ): LunchBooking {
         $team = $user->primaryTeamFor($site);
 
-        abort_unless($team !== null, 403);
+        if ($team === null) {
+            throw new AuthorizationException('You must belong to a team to book lunch.');
+        }
 
         $this->assertTeamsAvailability->execute(
             $site,
@@ -39,11 +43,7 @@ class StoreLunchBookingAction
             $endTime,
         );
 
-        LunchBooking::query()
-            ->where('team_id', $team->id)
-            ->where('user_id', $user->id)
-            ->whereHas('timeBlock', fn ($query) => $query->where('date', $date))
-            ->each(fn (LunchBooking $booking) => $booking->delete());
+        $this->deleteLunchBooking->deleteForTeamUserDate($team->id, $user->id, $date);
 
         $this->assertNoScheduleOverlap->execute($user, $date, $startTime, $endTime);
 

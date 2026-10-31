@@ -1,11 +1,12 @@
-<script setup>
+<script setup lang="ts">
 import { reactive, ref, computed } from 'vue';
 import { router, usePage } from '@inertiajs/vue3';
 import BrochureLayout from '@/Layouts/BrochureLayout.vue';
 import Button from '@/Components/Button.vue';
+import { store as registerSite } from '@/routes/sites';
 
 const page = usePage();
-const errors = computed(() => page.props.errors || {});
+const errors = computed(() => page.props.errors);
 
 const form = reactive({
     team_name: '',
@@ -18,21 +19,21 @@ const form = reactive({
 
 const processing = ref(false);
 
-function generateSlug(value) {
+function generateSlug(value: string): string {
     return value
         .toLowerCase()
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-+|-+$/g, '');
 }
 
-function onTeamNameInput() {
+function onTeamNameInput(): void {
     form.team_slug = generateSlug(form.team_name);
 }
 
-function handleSubmit() {
+function handleSubmit(): void {
     processing.value = true;
 
-    router.post('/register', form, {
+    router.post(registerSite.url(), form, {
         onFinish: () => processing.value = false,
     });
 }
@@ -64,7 +65,7 @@ const inputClasses = 'w-full px-3 py-2 bg-slate-900 border border-slate-700 roun
                                 :class="inputClasses"
                                 placeholder="Acme Corp"
                             />
-                            <p v-if="errors.team_name" class="mt-1 text-sm text-red-400">{{ errors.team_name }}</p>
+                            <p v-if="errors['team_name']" class="mt-1 text-sm text-red-400">{{ errors['team_name'] }}</p>
                         </div>
 
                         <div>
@@ -83,7 +84,7 @@ const inputClasses = 'w-full px-3 py-2 bg-slate-900 border border-slate-700 roun
                                     .onlunch.app
                                 </span>
                             </div>
-                            <p v-if="errors.team_slug" class="mt-1 text-sm text-red-400">{{ errors.team_slug }}</p>
+                            <p v-if="errors['team_slug']" class="mt-1 text-sm text-red-400">{{ errors['team_slug'] }}</p>
                         </div>
                     </div>
 
@@ -100,7 +101,7 @@ const inputClasses = 'w-full px-3 py-2 bg-slate-900 border border-slate-700 roun
                                 :class="inputClasses"
                                 placeholder="Jane Smith"
                             />
-                            <p v-if="errors.name" class="mt-1 text-sm text-red-400">{{ errors.name }}</p>
+                            <p v-if="errors['name']" class="mt-1 text-sm text-red-400">{{ errors['name'] }}</p>
                         </div>
 
                         <div>
@@ -113,7 +114,7 @@ const inputClasses = 'w-full px-3 py-2 bg-slate-900 border border-slate-700 roun
                                 :class="inputClasses"
                                 placeholder="jane@acme.com"
                             />
-                            <p v-if="errors.email" class="mt-1 text-sm text-red-400">{{ errors.email }}</p>
+                            <p v-if="errors['email']" class="mt-1 text-sm text-red-400">{{ errors['email'] }}</p>
                         </div>
 
                         <div>
@@ -125,7 +126,7 @@ const inputClasses = 'w-full px-3 py-2 bg-slate-900 border border-slate-700 roun
                                 required
                                 :class="inputClasses"
                             />
-                            <p v-if="errors.password" class="mt-1 text-sm text-red-400">{{ errors.password }}</p>
+                            <p v-if="errors['password']" class="mt-1 text-sm text-red-400">{{ errors['password'] }}</p>
                         </div>
 
                         <div>

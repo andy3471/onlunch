@@ -3,28 +3,20 @@ import { router } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import AdminNav from '@/Components/AdminNav.vue';
 import Button from '@/Components/Button.vue';
-
-type PendingRequest = {
-    id: string;
-    userName: string;
-    teamName: string;
-    date: string | null;
-    startTime: string | null;
-    endTime: string | null;
-    notes: string | null;
-};
+import type { PendingTimeOffRequestData } from '@/Types/generated';
+import { approve as approveRoute, reject as rejectRoute } from '@/routes/manage/time-off-requests';
 
 defineProps<{
-    requests: PendingRequest[];
+    requests: PendingTimeOffRequestData[];
     isSiteAdmin: boolean;
 }>();
 
-const approve = (id: string) => {
-    router.post(`/manage/time-off-requests/${id}/approve`, {}, { preserveScroll: true });
+const approve = (id: string): void => {
+    router.post(approveRoute.url({ timeOffRequest: id }), {}, { preserveScroll: true });
 };
 
-const reject = (id: string) => {
-    router.post(`/manage/time-off-requests/${id}/reject`, {}, { preserveScroll: true });
+const reject = (id: string): void => {
+    router.post(rejectRoute.url({ timeOffRequest: id }), {}, { preserveScroll: true });
 };
 </script>
 

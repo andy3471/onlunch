@@ -1,19 +1,21 @@
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue';
 import { useForm, Link, usePage } from '@inertiajs/vue3';
 import AuthCard from '@/Components/AuthCard.vue';
 import Input from '@/Components/Input.vue';
 import Button from '@/Components/Button.vue';
+import { email as sendResetLink } from '@/routes/password';
+import { login } from '@/routes/index';
 
 const page = usePage();
-const status = computed(() => page.props.status);
+const status = computed(() => page.props['status'] as string | undefined);
 
 const form = useForm({
     email: '',
 });
 
-const submit = () => {
-    form.post('/forgot-password');
+const submit = (): void => {
+    form.post(sendResetLink.url());
 };
 </script>
 
@@ -43,7 +45,7 @@ const submit = () => {
 
             <div class="flex items-center justify-between pt-4">
                 <Link
-                    href="/login"
+                    :href="login.url()"
                     class="text-sm text-slate-400 hover:text-slate-300 transition-colors"
                 >
                     Back to login

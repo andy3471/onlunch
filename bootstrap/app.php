@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Middleware\EnsureUserBelongsToSite;
 use App\Http\Middleware\ResolveTenantFromSubdomain;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -17,25 +18,24 @@ return Application::configure(basePath: dirname(__DIR__))
         then: function (): void {
             $domain = config('app.domain');
 
-            // Main domain: brochure / marketing pages
             Route::middleware('web')
                 ->domain($domain)
                 ->group(base_path('routes/web.php'));
 
-            // Tenant subdomains: app routes (Inertia frontend)
-            Route::middleware(['web', ResolveTenantFromSubdomain::class])
+            Route::middleware([ResolveTenantFromSubdomain::class, 'web'])
                 ->domain('{tenant}.'.$domain)
                 ->group(base_path('routes/tenant.php'));
-
-            // API routes
-            Route::prefix('api')
-                ->middleware('web')
-                ->name('api.')
-                ->group(base_path('routes/api.php'));
         }
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->trustProxies(at: '*');
+        $trustedProxies = env('TRUSTED_PROXIES', '*');
+
+        $middleware->trustProxies(
+            at: is_string($trustedProxies) && $trustedProxies !== '*'
+                ? array_values(array_filter(array_map(trim(...), explode(',', $trustedProxies))))
+                : '*'
+        );
+
         $middleware->redirectGuestsTo(function (): string {
             if (request()->route('tenant') !== null) {
                 return '/login';
@@ -66,6 +66,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'onboarding.complete' => App\Http\Middleware\EnsureOnboardingComplete::class,
             'admin'               => App\Http\Middleware\EnsureUserIsAdmin::class,
             'time_off.manage'     => App\Http\Middleware\EnsureUserCanManageTimeOff::class,
+            'site.member'         => EnsureUserBelongsToSite::class,
         ]);
 
         $middleware->priority([

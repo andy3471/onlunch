@@ -3,6 +3,12 @@ export const DEFAULT_BLOCK_MINUTES = 60;
 export const MIN_SNAPPED_BLOCK_MINUTES = 15;
 export const MIN_EXACT_BLOCK_MINUTES = 1;
 
+const parseNumberParts = (value: string, separator: string): [number, number, number] => {
+    const parts = value.split(separator).map(Number);
+
+    return [parts[0] ?? 0, parts[1] ?? 0, parts[2] ?? 0];
+};
+
 export const toLocalDateString = (date: Date): string => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -11,12 +17,12 @@ export const toLocalDateString = (date: Date): string => {
 };
 
 export const parseLocalDate = (dateString: string): Date => {
-    const [year, month, day] = dateString.split('-').map(Number);
+    const [year, month, day] = parseNumberParts(dateString, '-');
     return new Date(year, month - 1, day);
 };
 
 export const timeToMinutes = (time: string): number => {
-    const [hours, minutes] = time.split(':').map(Number);
+    const [hours, minutes] = parseNumberParts(time, ':');
     return hours * 60 + minutes;
 };
 

@@ -25,10 +25,9 @@ class LunchBookingController extends Controller
         private readonly DeleteLunchBookingAction $deleteLunchBooking,
     ) {}
 
-    public function store(StoreLunchBookingRequest $request): RedirectResponse
+    public function store(StoreLunchBookingRequest $request, Site $site): RedirectResponse
     {
-        /** @var Site $site */
-        $site  = resolve('currentSite');
+        /** @var User $user */
         $user  = $request->user();
         $today = Date::today()->toDateString();
 
@@ -40,23 +39,20 @@ class LunchBookingController extends Controller
             $request->validated('end_time'),
         );
 
-        return redirect('/')->with('message', 'Lunch booked.');
+        return redirect()->route('home')->with('message', 'Lunch booked.');
     }
 
-    public function update(UpdateLunchBookingRequest $request): RedirectResponse
+    public function update(UpdateLunchBookingRequest $request, Site $site): RedirectResponse
     {
-        /** @var Site $site */
-        $site = resolve('currentSite');
         /** @var User $user */
         $user = $request->user();
 
-        $lunchBookingId = (string) $request->route('lunchBooking');
-
         $booking = LunchBooking::query()
+            ->whereIn('team_id', $site->teamIds())
             ->with('timeBlock')
-            ->find($lunchBookingId);
+            ->findOrFail((string) $request->route('lunchBooking'));
 
-        abort_if($booking === null, 404);
+        $this->authorize('update', $booking);
 
         $this->updateLunchBooking->execute(
             $site,
@@ -71,16 +67,14 @@ class LunchBookingController extends Controller
         return redirect('/?date='.$date)->with('message', 'Lunch updated.');
     }
 
-    public function destroy(Request $request): RedirectResponse
+    public function destroy(Request $request, Site $site): RedirectResponse
     {
-        /** @var Site $site */
-        $site  = resolve('currentSite');
         /** @var User $user */
         $user  = $request->user();
         $today = Date::today()->toDateString();
 
         $this->deleteLunchBooking->execute($site, $user, $today);
 
-        return redirect('/')->with('message', 'Lunch booking removed.');
+        return redirect()->route('home')->with('message', 'Lunch booking removed.');
     }
 }

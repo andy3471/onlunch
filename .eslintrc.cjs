@@ -28,17 +28,14 @@ module.exports = {
       }
     },
     {
-      files: ['resources/js/**/*.{js,cjs}'],
+      files: ['**/*.{js,cjs,mjs}'],
+      extends: ['plugin:@typescript-eslint/disable-type-checked'],
       parserOptions: {
         project: null,
       },
-      rules: {
-        '@typescript-eslint/no-floating-promises': 'off',
-        '@typescript-eslint/no-misused-promises': 'off',
-      },
     },
     {
-      files: ['resources/js/**/*.{ts,vue}'],
+      files: ['resources/js/**/*.ts', 'resources/js/**/*.vue'],
       rules: {
         '@typescript-eslint/explicit-function-return-type': ['error', {
           allowExpressions: true,
@@ -52,10 +49,11 @@ module.exports = {
     },
   ],
   ignorePatterns: [
-    'resources/js/wayfinder/**',
-    'resources/js/routes/**',
-    'resources/js/actions/**',
-    'resources/js/Types/generated.ts',
+    'resources/js/Generated/**',
+    'resources/js/Types/generated*',
+    'resources/js/**/*.js',
+    'resources/js/**/*.cjs',
+    'resources/js/**/*.mjs',
   ],
   parser: 'vue-eslint-parser',
   parserOptions: {

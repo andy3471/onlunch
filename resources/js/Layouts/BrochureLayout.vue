@@ -1,6 +1,8 @@
-<script setup>
+<script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
 import AppLogo from '@/Components/AppLogo.vue';
+import { home } from '@/routes/brochure';
+import { register } from '@/routes/sites';
 </script>
 
 <template>
@@ -8,14 +10,14 @@ import AppLogo from '@/Components/AppLogo.vue';
         <header class="sticky top-0 z-40 border-b border-white/5 bg-slate-950/75 backdrop-blur-md">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex items-center justify-between h-14">
-                    <Link href="/" class="flex items-center gap-3 group">
+                    <Link :href="home.url()" class="flex items-center gap-3 group">
                         <AppLogo />
                         <span class="text-sm font-semibold text-white group-hover:text-primary-100 transition-colors">
                             FlexRota
                         </span>
                     </Link>
                     <Link
-                        href="/register"
+                        :href="register.url()"
                         class="btn btn-primary text-sm px-4 py-1.5"
                     >
                         Get started

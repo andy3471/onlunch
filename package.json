@@ -5,10 +5,12 @@
         "dev": "vite",
         "build": "vite build",
         "format": "prettier --write \"resources/views/**/*.blade.php\"",
-        "lint": "eslint --ext .js,.ts,.vue resources/js"
+        "typecheck": "vue-tsc --noEmit",
+        "lint": "eslint --ext .ts,.vue resources/js"
     },
     "devDependencies": {
         "@inertiajs/vue3": "^1.0.0",
+        "@laravel/vite-plugin-wayfinder": "^0.1.11",
         "@tailwindcss/forms": "^0.5.9",
         "@tailwindcss/postcss": "^4.1.18",
         "@tailwindcss/typography": "^0.5.15",
@@ -23,6 +25,7 @@
         "eslint-plugin-promise": "^6.1.0",
         "eslint-plugin-vue": "^9.22.0",
         "laravel-vite-plugin": "^1.0.0",
+        "playwright": "^1.64.1",
         "postcss": "^8.4.47",
         "prettier": "^3.3.3",
         "prettier-plugin-blade": "^2.1.19",
@@ -31,7 +34,8 @@
         "v-calendar": "^3.0.1",
         "vite": "^5.0.0",
         "vite-plugin-eslint2": "^4.4.0",
-        "vue": "^3.4.0"
+        "vue": "^3.4.0",
+        "vue-tsc": "^3.3.14"
     },
     "dependencies": {
         "@headlessui/vue": "^1.7.23"

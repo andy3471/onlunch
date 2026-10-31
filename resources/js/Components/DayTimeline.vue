@@ -1,10 +1,26 @@
 <script setup lang="ts">
-import { ref, computed, onBeforeUnmount } from 'vue';
+import { ref, computed } from 'vue';
 import { router } from '@inertiajs/vue3';
 import { Popover, PopoverButton, PopoverPanel } from '@headlessui/vue';
 import LoadingSpinner from './LoadingSpinner.vue';
 import Toast from './Toast.vue';
+import TimelineTrack from './TimelineTrack.vue';
+import AddBlockPopover, { type AddDraft } from './AddBlockPopover.vue';
+import type { ToastState, ToastType } from '@/Types/toast';
 import type { ScheduleUserData, TaskOptionData, TimeBlockData, WorkingHoursData } from '@/Types/generated';
+import { login } from '@/routes/index';
+import {
+    destroy as destroyLunchBooking,
+    store as storeLunchBooking,
+    update as updateLunchBooking,
+} from '@/routes/lunch-booking';
+import {
+    destroy as destroyTaskAssignment,
+    store as storeTaskAssignment,
+    update as updateTaskAssignment,
+} from '@/routes/task-assignments';
+import { store as storeTimeOffRequest } from '@/routes/time-off-requests';
+import { useTimelineDrag } from '@/Composables/useTimelineDrag';
 import {
     timeToMinutes,
     minutesToTime,
@@ -39,32 +55,8 @@ const emit = defineEmits<{
     dateChange: [date: string];
 }>();
 
-const toast = ref<{ type: string; message: string } | null>(null);
+const toast = ref<ToastState | null>(null);
 const reloadKeys = ['timeBlocks', 'myTaskAssignments', 'myLunchBooking'];
-
-type DragMode = 'move' | 'resize-start' | 'resize-end';
-
-interface DragState {
-    mode: DragMode;
-    block: TimeBlockData;
-    trackElement: HTMLElement;
-    pointerId: number;
-    startPointerMinutes: number;
-    originalStart: number;
-    originalEnd: number;
-    previewStart: number;
-    previewEnd: number;
-}
-
-interface AddDraft {
-    mode: 'task' | 'time_off' | 'lunch';
-    userId: string;
-    userName: string;
-    startTime: string;
-    endTime: string;
-    taskName: string;
-    notes: string;
-}
 
 interface EditDraft {
     block: TimeBlockData;
@@ -73,12 +65,15 @@ interface EditDraft {
     taskName: string;
 }
 
-const dragState = ref<DragState | null>(null);
 const addDraft = ref<AddDraft | null>(null);
 const editDraft = ref<EditDraft | null>(null);
 const submitting = ref(false);
 
-const typeStyles: Record<string, { bg: string; border: string }> = {
+type BlockTypeStyle = { bg: string; border: string };
+
+const defaultTypeStyle: BlockTypeStyle = { bg: 'bg-indigo-500/80', border: 'border-indigo-300' };
+
+const typeStyles: Record<string, BlockTypeStyle> = {
     task_assignment: { bg: 'bg-indigo-500/80', border: 'border-indigo-300' },
     time_off_request: { bg: 'bg-amber-500/80', border: 'border-amber-300' },
     lunch_booking: { bg: 'bg-emerald-500/80', border: 'border-emerald-300' },
@@ -207,14 +202,16 @@ const scheduleRows = computed(() => {
     }
 
     for (const block of props.timeBlocks) {
-        if (!grouped.has(block.userId)) {
+        const row = grouped.get(block.userId);
+        if (row) {
+            row.blocks.push(block);
+        } else {
             grouped.set(block.userId, {
                 userName: block.userName,
-                blocks: [],
+                blocks: [block],
                 isMe: block.userId === props.currentUserId,
             });
         }
-        grouped.get(block.userId)!.blocks.push(block);
     }
 
     if (props.currentUserId && !grouped.has(props.currentUserId)) {
@@ -290,41 +287,7 @@ const blockLabel = (block: TimeBlockData): string => {
     return 'Lunch';
 };
 
-const blockTimes = (block: TimeBlockData): { start: number; end: number } => {
-    if (dragState.value?.block.id === block.id) {
-        return {
-            start: dragState.value.previewStart,
-            end: dragState.value.previewEnd,
-        };
-    }
-
-    return {
-        start: timeToMinutes(block.startTime),
-        end: timeToMinutes(block.endTime),
-    };
-};
-
-const blockStyle = (block: TimeBlockData) => {
-    const { start, end } = blockTimes(block);
-    const left = percentFromMinutes(start, dayStart.value, daySpan.value);
-    const width = percentFromMinutes(end, dayStart.value, daySpan.value) - left;
-    const style = typeStyles[block.type] ?? typeStyles.task_assignment;
-    const customColor = block.type === 'task_assignment' && block.taskColor;
-    const editable = isEditableBlock(block);
-
-    return {
-        left: `${Math.max(0, left)}%`,
-        width: `${Math.max(1.5, width)}%`,
-        backgroundColor: customColor ?? undefined,
-        class: [
-            customColor ? 'border border-white/30' : `${style.bg} ${style.border} border`,
-            editable ? 'cursor-grab active:cursor-grabbing ring-1 ring-white/10 hover:ring-white/30' : 'cursor-default',
-            dragState.value?.block.id === block.id ? 'z-20 opacity-90 shadow-lg' : 'z-10',
-        ].join(' '),
-    };
-};
-
-const showToast = (type: string, message: string) => {
+const showToast = (type: ToastType, message: string): void => {
     toast.value = { type, message };
     setTimeout(() => { toast.value = null; }, 4000);
 };
@@ -392,15 +355,16 @@ const saveLunchBooking = (
     exact = false,
 ): void => {
     const range = exact ? clampExactRange(start, end) : clampSnappedRange(start, end);
+    const existing = props.timeBlocks.find((block) => block.lunchBookingId === lunchBookingId);
 
-    if (props.currentUserId !== null && hasScheduleOverlap(props.currentUserId, range.start, range.end, props.timeBlocks.find((block) => block.lunchBookingId === lunchBookingId)?.id)) {
+    if (props.currentUserId !== null && hasScheduleOverlap(props.currentUserId, range.start, range.end, existing?.id)) {
         showToast('error', OVERLAP_MESSAGE);
         return;
     }
 
     submitting.value = true;
 
-    router.put(`/lunch-booking/${lunchBookingId}`, {
+    router.put(updateLunchBooking.url({ lunchBooking: lunchBookingId }), {
         start_time: minutesToTime(range.start),
         end_time: minutesToTime(range.end),
     }, {
@@ -436,7 +400,7 @@ const saveAssignment = (
 
     submitting.value = true;
 
-    router.put(`/task-assignments/${assignmentId}`, {
+    router.put(updateTaskAssignment.url({ taskAssignment: assignmentId }), {
         start_time: minutesToTime(range.start),
         end_time: minutesToTime(range.end),
         task_name: taskName,
@@ -466,7 +430,7 @@ const createLunchBooking = (start: number, end: number, exact = false): void => 
     submitting.value = true;
     addDraft.value = null;
 
-    router.post('/lunch-booking', {
+    router.post(storeLunchBooking.url(), {
         start_time: minutesToTime(range.start),
         end_time: minutesToTime(range.end),
     }, {
@@ -494,7 +458,7 @@ const createTimeOffRequest = (start: number, end: number, notes: string, exact =
     submitting.value = true;
     addDraft.value = null;
 
-    router.post('/time-off-requests', {
+    router.post(storeTimeOffRequest.url(), {
         date: props.selectedDate,
         start_time: minutesToTime(range.start),
         end_time: minutesToTime(range.end),
@@ -532,10 +496,10 @@ const createAssignment = (start: number, end: number, taskName: string, targetUs
     };
 
     if (props.isAdmin && targetUserId !== props.currentUserId) {
-        payload.user_id = targetUserId;
+        payload['user_id'] = targetUserId;
     }
 
-    router.post('/task-assignments', payload, {
+    router.post(storeTaskAssignment.url(), payload, {
         preserveScroll: true,
         only: reloadKeys,
         onSuccess: () => showToast('success', 'Task added.'),
@@ -549,10 +513,10 @@ const createAssignment = (start: number, end: number, taskName: string, targetUs
     });
 };
 
-const removeAssignment = (assignmentId: string) => {
+const removeAssignment = (assignmentId: string): void => {
     submitting.value = true;
 
-    router.delete(`/task-assignments/${assignmentId}`, {
+    router.delete(destroyTaskAssignment.url({ taskAssignment: assignmentId }), {
         preserveScroll: true,
         only: reloadKeys,
         onSuccess: () => showToast('success', 'Removed.'),
@@ -566,7 +530,7 @@ const removeAssignment = (assignmentId: string) => {
 const removeLunchBooking = (): void => {
     submitting.value = true;
 
-    router.delete('/lunch-booking', {
+    router.delete(destroyLunchBooking.url(), {
         preserveScroll: true,
         only: reloadKeys,
         onSuccess: () => showToast('success', 'Lunch removed.'),
@@ -578,6 +542,51 @@ const removeLunchBooking = (): void => {
             submitting.value = false;
         },
     });
+};
+
+const onDragComplete = (block: TimeBlockData, previewStart: number, previewEnd: number): void => {
+    if (block.type === 'lunch_booking' && block.lunchBookingId) {
+        saveLunchBooking(block.lunchBookingId, previewStart, previewEnd);
+        return;
+    }
+
+    if (block.type === 'task_assignment' && block.assignmentId) {
+        saveAssignment(
+            block.assignmentId,
+            previewStart,
+            previewEnd,
+            block.taskName ?? 'Away',
+        );
+    }
+};
+
+const { dragState, onPointerDown, cancelDrag, blockTimes } = useTimelineDrag({
+    dayStart,
+    dayEnd,
+    daySpan,
+    submitting,
+    isEditableBlock,
+    onDragComplete,
+});
+
+const blockStyle = (block: TimeBlockData) => {
+    const { start, end } = blockTimes(block);
+    const left = percentFromMinutes(start, dayStart.value, daySpan.value);
+    const width = percentFromMinutes(end, dayStart.value, daySpan.value) - left;
+    const style = typeStyles[block.type] ?? defaultTypeStyle;
+    const customColor = block.type === 'task_assignment' ? block.taskColor : null;
+    const editable = isEditableBlock(block);
+
+    return {
+        left: `${Math.max(0, left)}%`,
+        width: `${Math.max(1.5, width)}%`,
+        backgroundColor: customColor ?? undefined,
+        class: [
+            customColor ? 'border border-white/30' : `${style.bg} ${style.border} border`,
+            editable ? 'cursor-grab active:cursor-grabbing ring-1 ring-white/10 hover:ring-white/30' : 'cursor-default',
+            dragState.value?.block.id === block.id ? 'z-20 opacity-90 shadow-lg' : 'z-10',
+        ].join(' '),
+    };
 };
 
 const onTrackClick = (event: MouseEvent, userId: string, userName: string): void => {
@@ -628,8 +637,6 @@ const openAddDraft = (
 
     const anchor = startMinutes ?? snapMinutes(dayStart.value + daySpan.value / 2, SNAP_MINUTES);
     const lunchRange = defaultLunchRange();
-    const defaultEnd = draftMode === 'lunch' ? 60 : DEFAULT_BLOCK_MINUTES;
-    const defaultStart = draftMode === 'lunch' ? lunchRange.start : anchor;
     const end = draftMode === 'lunch'
         ? lunchRange.end
         : Math.min(dayEnd.value, anchor + DEFAULT_BLOCK_MINUTES);
@@ -688,12 +695,6 @@ const openEditDraft = (block: TimeBlockData): void => {
         endTime: block.endTime,
         taskName: block.taskName ?? 'Away',
     };
-};
-
-const cancelDrag = (): void => {
-    dragState.value = null;
-    window.removeEventListener('pointermove', onPointerMove);
-    window.removeEventListener('pointerup', onPointerUp);
 };
 
 const onBlockDoubleClick = (block: TimeBlockData): void => {
@@ -770,114 +771,6 @@ const confirmEdit = (): void => {
         saveAssignment(block.assignmentId, range.start, range.end, taskName.trim(), true);
     }
 };
-
-const onPointerDown = (
-    event: PointerEvent,
-    block: TimeBlockData,
-    mode: DragMode,
-) => {
-    if (!isEditableBlock(block) || submitting.value) return;
-
-    const track = (event.currentTarget as HTMLElement).closest('[data-schedule-track]') as HTMLElement | null;
-    if (!track) return;
-
-    event.preventDefault();
-    event.stopPropagation();
-
-    const start = timeToMinutes(block.startTime);
-    const end = timeToMinutes(block.endTime);
-
-    dragState.value = {
-        mode,
-        block,
-        trackElement: track,
-        pointerId: event.pointerId,
-        startPointerMinutes: minutesFromPointer(event.clientX, track.getBoundingClientRect(), dayStart.value, daySpan.value),
-        originalStart: start,
-        originalEnd: end,
-        previewStart: start,
-        previewEnd: end,
-    };
-
-    (event.target as HTMLElement).setPointerCapture?.(event.pointerId);
-    window.addEventListener('pointermove', onPointerMove);
-    window.addEventListener('pointerup', onPointerUp);
-};
-
-const onPointerMove = (event: PointerEvent) => {
-    if (!dragState.value || event.pointerId !== dragState.value.pointerId) return;
-
-    const current = minutesFromPointer(
-        event.clientX,
-        dragState.value.trackElement.getBoundingClientRect(),
-        dayStart.value,
-        daySpan.value,
-    );
-    const delta = current - dragState.value.startPointerMinutes;
-    const duration = dragState.value.originalEnd - dragState.value.originalStart;
-
-    if (dragState.value.mode === 'move') {
-        let start = snapMinutes(dragState.value.originalStart + delta, SNAP_MINUTES);
-        let end = start + duration;
-        if (end > dayEnd.value) {
-            end = dayEnd.value;
-            start = end - duration;
-        }
-        if (start < dayStart.value) {
-            start = dayStart.value;
-            end = start + duration;
-        }
-        dragState.value.previewStart = start;
-        dragState.value.previewEnd = end;
-    }
-
-    if (dragState.value.mode === 'resize-start') {
-        const end = dragState.value.originalEnd;
-        const start = snapMinutes(Math.min(current, end - MIN_SNAPPED_BLOCK_MINUTES), SNAP_MINUTES);
-        dragState.value.previewStart = Math.max(dayStart.value, start);
-        dragState.value.previewEnd = end;
-    }
-
-    if (dragState.value.mode === 'resize-end') {
-        const start = dragState.value.originalStart;
-        const end = snapMinutes(Math.max(current, start + MIN_SNAPPED_BLOCK_MINUTES), SNAP_MINUTES);
-        dragState.value.previewEnd = Math.min(dayEnd.value, end);
-        dragState.value.previewStart = start;
-    }
-};
-
-const onPointerUp = (event: PointerEvent) => {
-    if (!dragState.value || event.pointerId !== dragState.value.pointerId) return;
-
-    const { block, previewStart, previewEnd, originalStart, originalEnd } = dragState.value;
-
-    dragState.value = null;
-    window.removeEventListener('pointermove', onPointerMove);
-    window.removeEventListener('pointerup', onPointerUp);
-
-    if (previewStart === originalStart && previewEnd === originalEnd) {
-        return;
-    }
-
-    if (block.type === 'lunch_booking' && block.lunchBookingId) {
-        saveLunchBooking(block.lunchBookingId, previewStart, previewEnd);
-        return;
-    }
-
-    if (block.type === 'task_assignment' && block.assignmentId) {
-        saveAssignment(
-            block.assignmentId,
-            previewStart,
-            previewEnd,
-            block.taskName ?? 'Away',
-        );
-    }
-};
-
-onBeforeUnmount(() => {
-    window.removeEventListener('pointermove', onPointerMove);
-    window.removeEventListener('pointerup', onPointerUp);
-});
 </script>
 
 <template>
@@ -969,7 +862,7 @@ onBeforeUnmount(() => {
                     </button>
                 </div>
                 <div v-if="!loggedIn" class="text-xs text-slate-500">
-                    <a href="/login" class="text-primary-400 hover:text-primary-300">Log in</a> to edit your row
+                    <a :href="login.url()" class="text-primary-400 hover:text-primary-300">Log in</a> to edit your row
                 </div>
             </div>
 
@@ -981,113 +874,19 @@ onBeforeUnmount(() => {
                 <span v-if="canEdit && isAdmin" class="text-amber-400/80"> · admin: edit anyone's tasks</span>
             </p>
 
-            <div
+            <AddBlockPopover
                 v-if="addDraft"
-                class="mt-3 flex flex-wrap items-end gap-3 rounded-lg bg-slate-900/70 border p-3"
-                :class="addDraftBorderClass"
-            >
-                <p v-if="addDraft.userId !== currentUserId" class="w-full text-xs text-amber-300/90">
-                    Adding task for {{ addDraft.userName }}
-                </p>
-                <div
-                    v-if="addDraft.userId === currentUserId"
-                    class="w-full flex gap-1 p-0.5 rounded-lg bg-slate-800/80 border border-slate-700/50"
-                >
-                    <button
-                        type="button"
-                        class="flex-1 text-xs py-1.5 rounded-md font-medium transition-colors"
-                        :class="addDraft.mode === 'task'
-                            ? 'bg-indigo-600 text-white'
-                            : 'text-slate-400 hover:text-slate-200'"
-                        @click="addDraft.mode = 'task'"
-                    >
-                        Task
-                    </button>
-                    <button
-                        type="button"
-                        class="flex-1 text-xs py-1.5 rounded-md font-medium transition-colors"
-                        :class="addDraft.mode === 'time_off'
-                            ? 'bg-amber-600 text-white'
-                            : 'text-slate-400 hover:text-slate-200'"
-                        @click="setAddDraftMode('time_off')"
-                    >
-                        Time off
-                    </button>
-                    <button
-                        v-if="canAddLunch"
-                        type="button"
-                        class="flex-1 text-xs py-1.5 rounded-md font-medium transition-colors"
-                        :class="addDraft.mode === 'lunch'
-                            ? 'bg-emerald-600 text-white'
-                            : 'text-slate-400 hover:text-slate-200'"
-                        @click="setAddDraftMode('lunch')"
-                    >
-                        Lunch
-                    </button>
-                </div>
-                <p v-if="addDraft.mode === 'lunch'" class="w-full text-xs text-emerald-300/90">
-                    Book lunch for today
-                </p>
-                <div v-if="addDraft.mode === 'task'" class="flex-1 min-w-[180px]">
-                    <label class="block text-xs text-slate-400 mb-1">Task</label>
-                    <input
-                        v-model="addDraft.taskName"
-                        type="text"
-                        list="task-name-suggestions"
-                        placeholder="e.g. Deep work, Client call…"
-                        class="input text-sm py-1.5 w-full"
-                    >
-                    <datalist id="task-name-suggestions">
-                        <option v-for="name in taskSuggestions" :key="name" :value="name" />
-                    </datalist>
-                    <div class="flex flex-wrap gap-1.5 mt-2">
-                        <button
-                            v-for="name in taskSuggestions"
-                            :key="`add-${name}`"
-                            type="button"
-                            class="text-[10px] px-2 py-0.5 rounded-full border border-slate-600 text-slate-400 hover:border-primary-500/50 hover:text-primary-300"
-                            @click="applyTaskSuggestion(addDraft, name)"
-                        >
-                            {{ name }}
-                        </button>
-                    </div>
-                </div>
-                <div>
-                    <label class="block text-xs text-slate-400 mb-1">Start</label>
-                    <input v-model="addDraft.startTime" type="time" step="60" class="input text-sm py-1.5">
-                </div>
-                <div>
-                    <label class="block text-xs text-slate-400 mb-1">End</label>
-                    <input v-model="addDraft.endTime" type="time" step="60" class="input text-sm py-1.5">
-                </div>
-                <div v-if="addDraft.mode === 'time_off'" class="w-full">
-                    <label class="block text-xs text-slate-400 mb-1">Notes (optional)</label>
-                    <textarea
-                        v-model="addDraft.notes"
-                        rows="2"
-                        class="input text-sm py-1.5 w-full resize-none"
-                        placeholder="Reason or details…"
-                    />
-                </div>
-                <div class="flex gap-2">
-                    <button
-                        type="button"
-                        class="text-sm px-3 py-1.5 btn"
-                        :class="{
-                            'bg-amber-600 hover:bg-amber-500 text-white border-0': addDraft.mode === 'time_off',
-                            'bg-emerald-600 hover:bg-emerald-500 text-white border-0': addDraft.mode === 'lunch',
-                            'btn-primary': addDraft.mode === 'task',
-                        }"
-                        :disabled="submitting"
-                        @click="confirmAdd"
-                    >
-                        {{ addDraft.mode === 'time_off' ? 'Request' : addDraft.mode === 'lunch' ? 'Book lunch' : 'Add' }}
-                    </button>
-                    <button type="button" class="btn btn-ghost text-sm px-3 py-1.5" @click="addDraft = null">
-                        Cancel
-                    </button>
-                </div>
-            </div>
+                :add-draft="addDraft"
+                :current-user-id="currentUserId"
+                :can-add-lunch="canAddLunch"
+                :task-suggestions="taskSuggestions"
+                :submitting="submitting"
+                :border-class="addDraftBorderClass"
+                @confirm="confirmAdd"
+                @cancel="addDraft = null"
+                @set-mode="setAddDraftMode"
+                @apply-task-suggestion="(name) => addDraft && applyTaskSuggestion(addDraft, name)"
+            />
 
             <div
                 v-if="editDraft"
@@ -1155,126 +954,32 @@ onBeforeUnmount(() => {
                 </div>
 
                 <div v-else class="space-y-2">
-                    <div
+                    <TimelineTrack
                         v-for="user in scheduleRows"
                         :key="user.userId"
-                        class="flex items-stretch gap-3"
-                        :class="user.isMe ? 'rounded-lg bg-primary-500/5 ring-1 ring-primary-500/20 p-2 -mx-2' : ''"
-                    >
-                        <div
-                            class="w-20 shrink-0 text-sm truncate pt-3 flex flex-col gap-1"
-                            :class="user.isMe ? 'text-primary-300 font-medium' : 'text-slate-300'"
-                        >
-                            <span :title="user.userName">{{ user.isMe ? 'You' : user.userName }}</span>
-                            <div v-if="canEditRow(user.userId) && !addDraft && !editDraft" class="flex flex-col gap-0.5">
-                                <button
-                                    type="button"
-                                    class="text-[10px] text-left text-primary-400 hover:text-primary-300 underline"
-                                    @click.stop="openAddDraft(undefined, user.userId, user.isMe ? 'You' : user.userName, user.isMe ? 'task' : 'task')"
-                                >
-                                    + Add
-                                </button>
-                                <button
-                                    v-if="user.isMe && canAddLunch"
-                                    type="button"
-                                    class="text-[10px] text-left text-emerald-400 hover:text-emerald-300 underline"
-                                    @click.stop="openLunchDraft()"
-                                >
-                                    + Lunch
-                                </button>
-                            </div>
-                        </div>
-
-                        <div
-                            data-schedule-track
-                            class="flex-1 relative h-14 rounded-lg border transition-colors"
-                            :class="[
-                                canEditRow(user.userId)
-                                    ? 'bg-slate-900/60 border-slate-600/50 hover:border-primary-500/40 cursor-crosshair'
-                                    : 'bg-slate-900/40 border-slate-700/30',
-                            ]"
-                            @click="onTrackClick($event, user.userId, user.isMe ? 'You' : user.userName)"
-                        >
-                            <div
-                                class="absolute top-0 bottom-0 bg-slate-700/25 pointer-events-none border-x border-slate-600/25 rounded-sm"
-                                :style="workingHoursStyle"
-                                :title="`Working hours ${workingHours.start} – ${workingHours.end}`"
-                            />
-
-                            <div
-                                v-for="(line, index) in gridLines"
-                                :key="index"
-                                class="absolute top-0 bottom-0 w-px bg-slate-700/40 pointer-events-none"
-                                :style="{ left: `${line}%` }"
-                            />
-
-                            <button
-                                v-if="user.isMe && lunchPlaceholderStyle"
-                                type="button"
-                                class="absolute top-1 bottom-1 rounded-md border-2 border-dashed border-emerald-500/50 bg-emerald-500/10 text-[10px] text-emerald-300/90 font-medium hover:bg-emerald-500/20 hover:border-emerald-400/70 transition-colors z-0"
-                                :style="lunchPlaceholderStyle"
-                                title="Book lunch"
-                                @click.stop="openLunchDraft()"
-                            >
-                                <span class="truncate px-1">+ Lunch</span>
-                            </button>
-
-                            <div
-                                v-for="block in user.blocks"
-                                :key="block.id"
-                                data-schedule-block
-                                class="absolute top-1 bottom-1 rounded-md flex items-center overflow-hidden group select-none touch-none"
-                                :class="blockStyle(block).class"
-                                :style="{ left: blockStyle(block).left, width: blockStyle(block).width, backgroundColor: blockStyle(block).backgroundColor }"
-                                :title="`${blockLabel(block)}: ${minutesToTime(blockTimes(block).start)} – ${minutesToTime(blockTimes(block).end)}${isEditableBlock(block) && block.type === 'task_assignment' ? ' · double-click to edit' : ''}`"
-                                @pointerdown="onPointerDown($event, block, 'move')"
-                                @dblclick.stop="onBlockDoubleClick(block)"
-                            >
-                                <div
-                                    v-if="isEditableBlock(block)"
-                                    class="absolute left-0 top-0 bottom-0 w-1.5 cursor-ew-resize opacity-0 group-hover:opacity-100 bg-white/30"
-                                    @pointerdown.stop="onPointerDown($event, block, 'resize-start')"
-                                />
-                                <span class="text-[10px] text-white font-medium truncate px-2 flex-1 text-center pointer-events-none">
-                                    {{ blockLabel(block) }}
-                                </span>
-                                <span class="text-[9px] text-white/70 px-1 hidden sm:inline pointer-events-none">
-                                    {{ minutesToTime(blockTimes(block).start) }}
-                                </span>
-                                <button
-                                    v-if="isEditableBlock(block)"
-                                    type="button"
-                                    class="absolute top-0.5 right-5 hidden group-hover:flex w-4 h-4 items-center justify-center rounded bg-black/40 text-white/80 hover:text-white text-[10px]"
-                                    title="Set exact times"
-                                    @click.stop="openEditDraft(block)"
-                                >
-                                    ✎
-                                </button>
-                                <button
-                                    v-if="isEditableBlock(block) && block.type === 'task_assignment'"
-                                    type="button"
-                                    class="absolute top-0.5 right-0.5 hidden group-hover:flex w-4 h-4 items-center justify-center rounded bg-black/40 text-white/80 hover:text-white text-xs"
-                                    @click.stop="removeAssignment(block.assignmentId!)"
-                                >
-                                    ×
-                                </button>
-                                <button
-                                    v-if="isEditableBlock(block) && block.type === 'lunch_booking'"
-                                    type="button"
-                                    class="absolute top-0.5 right-0.5 hidden group-hover:flex w-4 h-4 items-center justify-center rounded bg-black/40 text-white/80 hover:text-white text-xs"
-                                    title="Remove lunch"
-                                    @click.stop="removeLunchBooking()"
-                                >
-                                    ×
-                                </button>
-                                <div
-                                    v-if="isEditableBlock(block)"
-                                    class="absolute right-0 top-0 bottom-0 w-1.5 cursor-ew-resize opacity-0 group-hover:opacity-100 bg-white/30"
-                                    @pointerdown.stop="onPointerDown($event, block, 'resize-end')"
-                                />
-                            </div>
-                        </div>
-                    </div>
+                        :user-name="user.userName"
+                        :is-me="user.isMe"
+                        :blocks="user.blocks"
+                        :working-hours="workingHours"
+                        :working-hours-style="workingHoursStyle"
+                        :grid-lines="gridLines"
+                        :lunch-placeholder-style="lunchPlaceholderStyle"
+                        :can-edit-track="canEditRow(user.userId)"
+                        :can-show-row-actions="canEditRow(user.userId) && !addDraft && !editDraft"
+                        :can-add-lunch="canAddLunch"
+                        :block-label="blockLabel"
+                        :block-style="blockStyle"
+                        :block-times="blockTimes"
+                        :is-editable-block="isEditableBlock"
+                        @track-click="onTrackClick($event, user.userId, user.isMe ? 'You' : user.userName)"
+                        @open-add-draft="openAddDraft(undefined, user.userId, user.isMe ? 'You' : user.userName, 'task')"
+                        @open-lunch-draft="openLunchDraft()"
+                        @block-pointer-down="onPointerDown"
+                        @block-double-click="onBlockDoubleClick"
+                        @open-edit="openEditDraft"
+                        @remove-assignment="removeAssignment"
+                        @remove-lunch="removeLunchBooking"
+                    />
                 </div>
 
                 <div class="flex gap-4 mt-4 justify-center text-xs text-slate-400">

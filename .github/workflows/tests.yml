@@ -1,0 +1,88 @@
+name: Tests
+
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: password
+          MYSQL_DATABASE: testing
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -ppassword"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    env:
+      APP_ENV: testing
+      APP_KEY: base64:2fl+KtvkdphvQyEfmluIAQ857jGkGFFl76gS5fwlqHs=
+      APP_DOMAIN: localhost
+      DB_CONNECTION: mysql
+      DB_HOST: 127.0.0.1
+      DB_PORT: 3306
+      DB_DATABASE: testing
+      DB_USERNAME: root
+      DB_PASSWORD: password
+      CACHE_STORE: array
+      SESSION_DRIVER: array
+      QUEUE_CONNECTION: sync
+      MAIL_MAILER: array
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, pdo_mysql, redis, zip, intl
+          coverage: none
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install Composer dependencies
+        run: composer install --prefer-dist --no-interaction --no-progress
+
+      - name: Install NPM dependencies
+        run: npm ci
+
+      - name: Generate Wayfinder + TypeScript
+        run: |
+          php artisan wayfinder:generate --path=resources/js/Generated --no-interaction
+          php artisan typescript:transform --no-interaction
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Pint
+        run: vendor/bin/pint --test
+
+      - name: Composer audit
+        run: composer audit
+
+      - name: NPM audit
+        run: npm audit --audit-level=high
+
+      - name: Pest feature + unit
+        run: php artisan test --compact --testsuite=Unit,Feature
+
+      # Browser suite (Playwright) — enable when Sail/CI has browser deps:
+      # - run: npx playwright install --with-deps chromium
+      # - run: php artisan test --compact --testsuite=Browser

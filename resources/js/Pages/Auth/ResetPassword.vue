@@ -1,19 +1,15 @@
-<script setup>
+<script setup lang="ts">
 import { useForm, Link } from '@inertiajs/vue3';
 import AuthCard from '@/Components/AuthCard.vue';
 import Input from '@/Components/Input.vue';
 import Button from '@/Components/Button.vue';
+import { update as resetPassword } from '@/routes/password';
+import { login } from '@/routes/index';
 
-const props = defineProps({
-    email: {
-        type: String,
-        required: true,
-    },
-    token: {
-        type: String,
-        required: true,
-    },
-});
+const props = defineProps<{
+    email: string;
+    token: string;
+}>();
 
 const form = useForm({
     token: props.token,
@@ -22,8 +18,8 @@ const form = useForm({
     password_confirmation: '',
 });
 
-const submit = () => {
-    form.post('/reset-password', {
+const submit = (): void => {
+    form.post(resetPassword.url(), {
         onFinish: () => form.reset('password', 'password_confirmation'),
     });
 };
@@ -61,7 +57,7 @@ const submit = () => {
 
             <div class="flex items-center justify-between pt-4">
                 <Link
-                    href="/login"
+                    :href="login.url()"
                     class="text-sm text-slate-400 hover:text-slate-300 transition-colors"
                 >
                     Back to login

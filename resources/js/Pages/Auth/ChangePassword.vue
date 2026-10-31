@@ -1,8 +1,10 @@
-<script setup>
+<script setup lang="ts">
 import { useForm, Link } from '@inertiajs/vue3';
 import AuthCard from '@/Components/AuthCard.vue';
 import Input from '@/Components/Input.vue';
 import Button from '@/Components/Button.vue';
+import { update as updatePassword } from '@/actions/App/Http/Controllers/User/PasswordController';
+import { home } from '@/routes/index';
 
 const form = useForm({
     currentpassword: '',
@@ -10,8 +12,8 @@ const form = useForm({
     newpassword_confirmation: '',
 });
 
-const submit = () => {
-    form.post('/change-password', {
+const submit = (): void => {
+    form.put(updatePassword.url(), {
         preserveScroll: false,
         onSuccess: () => {
             form.reset();
@@ -52,7 +54,7 @@ const submit = () => {
 
             <div class="flex items-center justify-between pt-4">
                 <Link
-                    href="/"
+                    :href="home.url()"
                     class="text-sm text-slate-400 hover:text-slate-300 transition-colors"
                 >
                     Cancel

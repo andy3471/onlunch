@@ -1,19 +1,19 @@
-<script setup>
+<script setup lang="ts">
 import { useForm, Link } from '@inertiajs/vue3';
 import { Switch } from '@headlessui/vue';
 import AuthCard from '@/Components/AuthCard.vue';
 import Input from '@/Components/Input.vue';
 import Button from '@/Components/Button.vue';
+import { store as loginStore } from '@/actions/App/Http/Controllers/Auth/LoginController';
+import { register } from '@/routes/index';
+import { request as forgotPasswordRequest } from '@/routes/password';
 
-defineProps({
-    registerEnabled: {
-        type: Boolean,
-        default: false,
-    },
-    resetPasswordEnabled: {
-        type: Boolean,
-        default: false,
-    },
+withDefaults(defineProps<{
+    registerEnabled?: boolean;
+    resetPasswordEnabled?: boolean;
+}>(), {
+    registerEnabled: false,
+    resetPasswordEnabled: false,
 });
 
 const form = useForm({
@@ -22,8 +22,8 @@ const form = useForm({
     remember: false,
 });
 
-const submit = () => {
-    form.post('/login', {
+const submit = (): void => {
+    form.post(loginStore.url(), {
         onFinish: () => form.reset('password'),
     });
 };
@@ -68,7 +68,7 @@ const submit = () => {
             <div class="flex items-center justify-between pt-4">
                 <Link
                     v-if="resetPasswordEnabled"
-                    href="/forgot-password"
+                    :href="forgotPasswordRequest.url()"
                     class="text-sm text-primary-400 hover:text-primary-300 transition-colors"
                 >
                     Forgot your password?
@@ -88,7 +88,7 @@ const submit = () => {
         <div v-if="registerEnabled" class="mt-6 pt-6 border-t border-slate-700/50 text-center">
             <p class="text-slate-400 text-sm">
                 Don't have an account?
-                <Link href="/register" class="text-primary-400 hover:text-primary-300 transition-colors">
+                <Link :href="register.url()" class="text-primary-400 hover:text-primary-300 transition-colors">
                     Register
                 </Link>
             </p>

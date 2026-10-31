@@ -1,46 +1,67 @@
 # LunchRota
 
-Manage daily work roles and lunch slot bookings for your team.
+Multi-tenant team scheduling for lunch bookings, task assignments, and time off.
 
-## About
+## Stack
 
-LunchRota is a team management tool for tracking daily work roles and claiming available lunch slots. It supports configurable lunch slot limits — either a fixed number or auto-calculated based on role availability.
+- PHP 8.4 / Laravel 12
+- Inertia.js v1 + Vue 3 + TypeScript
+- Tailwind CSS
+- Laravel Sail
+- Laravel Wayfinder + Spatie Laravel Data / TypeScript Transformer
+- Pest v4 (Feature + Browser)
 
-Built with [Laravel](https://laravel.com), [Vue.js](https://vuejs.org), and [Inertia.js](https://inertiajs.com). It uses [Tailwind CSS](https://tailwindcss.com) for styling, [Filament](https://filamentphp.com) for the admin panel, and [Laravel Sail](https://laravel.com/docs/sail) for local development.
+Sites are resolved from `{slug}.{APP_DOMAIN}` subdomains. Users are global; access is via site membership.
 
-## Installation
-
-This is a standard Laravel application. Follow the official Laravel documentation for installation and deployment:
-
-- [Installation](https://laravel.com/docs/installation)
-- [Configuration](https://laravel.com/docs/configuration)
-- [Deployment](https://laravel.com/docs/deployment)
-
-### Quick Start (Local Development)
+## Quick start (Sail)
 
 ```shell
-# Clone the repo
 git clone https://github.com/andy3471/lunchrota.git
 cd lunchrota
 
-# Install PHP dependencies
-composer install
-
-# Copy environment file and generate app key
 cp .env.example .env
-php artisan key:generate
-
-# Start Sail
+composer install --ignore-platform-reqs
 vendor/bin/sail up -d
-
-# Install JS dependencies and build assets
+vendor/bin/sail artisan key:generate
 vendor/bin/sail npm install
 vendor/bin/sail npm run build
-
-# Run migrations
 vendor/bin/sail artisan migrate
+vendor/bin/sail open
 ```
 
-## Contributing
+Set `APP_DOMAIN` (default `localhost`) and create a site via the brochure `/register` flow, then open `http://{slug}.localhost`.
 
-Pull requests are welcome. For local development, use [Laravel Sail](https://laravel.com/docs/sail) to run the application.
+## Frontend
+
+```shell
+vendor/bin/sail npm run dev
+vendor/bin/sail npm run typecheck
+vendor/bin/sail npm run lint
+```
+
+Wayfinder output lives under `resources/js/Generated/` (aliased as `@/actions`, `@/routes`, `@/wayfinder`). Regenerate with Vite (plugin) or:
+
+```shell
+vendor/bin/sail artisan wayfinder:generate --path=resources/js/Generated
+vendor/bin/sail artisan typescript:transform
+```
+
+## Testing
+
+```shell
+# Feature + unit (default)
+composer test
+# or
+vendor/bin/sail artisan test --compact
+
+# Browser (Playwright; install once inside Sail)
+vendor/bin/sail npx playwright install chromium
+vendor/bin/sail root-shell -c "npx playwright install-deps chromium"
+vendor/bin/sail artisan test --compact --testsuite=Browser
+```
+
+Create a MySQL `testing` database matching `phpunit.xml` (`DB_DATABASE=testing`).
+
+## Production notes
+
+See `.env.example`: `APP_DEBUG=false`, `SESSION_ENCRYPT=true`, `SESSION_SECURE_COOKIE=true`, and set `TRUSTED_PROXIES` to your load-balancer CIDRs when not using `*`.

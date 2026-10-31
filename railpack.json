@@ -6,7 +6,7 @@
     "steps": {
         "build": {
             "commands": [
-                "php artisan wayfinder:generate --no-interaction",
+                "php artisan wayfinder:generate --path=resources/js/Generated --no-interaction",
                 "..."
             ]
         }

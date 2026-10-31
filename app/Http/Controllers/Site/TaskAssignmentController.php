@@ -26,10 +26,8 @@ class TaskAssignmentController extends Controller
         private readonly ResolveTaskForAssignmentAction $resolveTask,
     ) {}
 
-    public function store(StoreTaskAssignmentRequest $request): RedirectResponse
+    public function store(StoreTaskAssignmentRequest $request, Site $site): RedirectResponse
     {
-        /** @var Site $site */
-        $site = resolve('currentSite');
         /** @var User $actor */
         $actor = $request->user();
 
@@ -38,7 +36,11 @@ class TaskAssignmentController extends Controller
 
         abort_unless($team !== null, 403);
 
-        $taskId = $this->resolveTask->execute($team, $request->validated('task_name'));
+        $taskId = $this->resolveTask->execute(
+            $team,
+            $request->validated('task_name'),
+            $actor->isSiteAdminFor($site),
+        );
 
         $this->storeTaskAssignment->execute(
             $team,
@@ -53,28 +55,26 @@ class TaskAssignmentController extends Controller
             ->with('message', 'Task added to the schedule.');
     }
 
-    public function update(UpdateTaskAssignmentRequest $request): RedirectResponse
+    public function update(UpdateTaskAssignmentRequest $request, Site $site): RedirectResponse
     {
-        /** @var Site $site */
-        $site = resolve('currentSite');
         /** @var User $actor */
         $actor = $request->user();
 
-        $taskAssignmentId = (string) $request->route('taskAssignment');
-
         $record = TaskAssignment::query()
             ->whereIn('team_id', $site->teamIds())
-            ->with('timeBlock')
-            ->find($taskAssignmentId);
+            ->with(['timeBlock', 'team'])
+            ->findOrFail((string) $request->route('taskAssignment'));
 
-        abort_if($record === null, 404);
+        $this->authorize('update', $record);
 
-        $team = $record->team;
-
-        $taskId = $this->resolveTask->execute($team, $request->validated('task_name'));
+        $taskId = $this->resolveTask->execute(
+            $record->team,
+            $request->validated('task_name'),
+            $actor->isSiteAdminFor($site),
+        );
 
         $this->updateTaskAssignment->execute(
-            $team,
+            $record->team,
             $actor,
             $record,
             $request->validated('start_time'),
@@ -87,19 +87,17 @@ class TaskAssignmentController extends Controller
         return redirect('/?date='.$date)->with('message', 'Schedule updated.');
     }
 
-    public function destroy(Request $request): RedirectResponse
+    public function destroy(Request $request, Site $site): RedirectResponse
     {
-        /** @var Site $site */
-        $site = resolve('currentSite');
         /** @var User $actor */
         $actor = $request->user();
-
-        $taskAssignmentId = (string) $request->route('taskAssignment');
 
         $record = TaskAssignment::query()
             ->whereIn('team_id', $site->teamIds())
             ->with('timeBlock')
-            ->findOrFail($taskAssignmentId);
+            ->findOrFail((string) $request->route('taskAssignment'));
+
+        $this->authorize('delete', $record);
 
         $date = $this->deleteTaskAssignment->execute($actor, $record);
 
@@ -114,14 +112,9 @@ class TaskAssignmentController extends Controller
 
         abort_unless($actor->isSiteAdminFor($site), 403);
 
-        $assignee = User::query()->find($userId);
+        $assignee = $site->members()->whereKey($userId)->first();
 
         abort_if($assignee === null, 404);
-
-        abort_unless(
-            $site->members()->where('users.id', $assignee->id)->exists(),
-            403,
-        );
 
         return $assignee;
     }

@@ -3,18 +3,11 @@ import { Link } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import AdminNav from '@/Components/AdminNav.vue';
 import Button from '@/Components/Button.vue';
-
-type UserRow = {
-    id: string;
-    name: string;
-    email: string;
-    isAdmin: boolean;
-    teamNames: string[];
-    isScheduled: boolean;
-};
+import type { UserRowData } from '@/Types/generated';
+import { create, edit } from '@/routes/manage/users';
 
 defineProps<{
-    users: UserRow[];
+    users: UserRowData[];
 }>();
 </script>
 
@@ -28,7 +21,7 @@ defineProps<{
                     <h2 class="text-lg font-semibold text-slate-100">Users</h2>
                     <p class="text-sm text-slate-400">Site members and their team assignments.</p>
                 </div>
-                <Link href="/manage/users/create">
+                <Link :href="create.url()">
                     <Button>Add user</Button>
                 </Link>
             </div>
@@ -56,7 +49,7 @@ defineProps<{
                             <td class="px-6 py-3">{{ user.isScheduled ? 'Yes' : 'No' }}</td>
                             <td class="px-6 py-3 text-right">
                                 <Link
-                                    :href="`/manage/users/${user.id}/edit`"
+                                    :href="edit.url({ user: user.id })"
                                     class="text-indigo-400 hover:text-indigo-300"
                                 >
                                     Edit

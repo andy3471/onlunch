@@ -9,21 +9,22 @@ The Laravel Boost guidelines are specifically curated by Laravel maintainers for
 
 This application is a Laravel application and its main Laravel ecosystems package & versions are below. You are an expert with them all. Ensure you abide by these specific packages & versions.
 
-- php - 8.3.30
-- filament/filament (FILAMENT) - v3
+- php - ^8.4
 - inertiajs/inertia-laravel (INERTIA) - v1
-- laravel/framework (LARAVEL) - v11
+- laravel/framework (LARAVEL) - v12
 - laravel/prompts (PROMPTS) - v0
-- livewire/livewire (LIVEWIRE) - v3
-- laravel/mcp (MCP) - v0
+- laravel/wayfinder (WAYFINDER) - v0
 - laravel/pint (PINT) - v1
 - laravel/sail (SAIL) - v1
-- phpunit/phpunit (PHPUNIT) - v10
+- pestphp/pest (PEST) - v4
+- spatie/laravel-data (SPATIE DATA) - v4
+- spatie/laravel-typescript-transformer - v2
 - eslint (ESLINT) - v8
 - @inertiajs/vue3 (INERTIA) - v1
 - prettier (PRETTIER) - v3
 - tailwindcss (TAILWINDCSS) - v3
 - vue (VUE) - v3
+- vue-tsc - v3
 
 ## Skills Activation
 
@@ -279,12 +280,13 @@ protected function isAccessible(User $user, ?string $path = null): bool
 - You must run `vendor/bin/sail bin pint --dirty --format agent` before finalizing changes to ensure your code matches the project's expected style.
 - Do not run `vendor/bin/sail bin pint --test --format agent`, simply run `vendor/bin/sail bin pint --format agent` to fix any formatting issues.
 
-=== phpunit/core rules ===
+=== pest/core rules ===
 
-# PHPUnit
+# Pest
 
-- This application uses PHPUnit for testing. All tests must be written as PHPUnit classes. Use `vendor/bin/sail artisan make:test --phpunit {name}` to create a new test.
-- If you see a test using "Pest", convert it to PHPUnit.
+- This application uses Pest v4 for testing (with the Laravel and Browser plugins). Prefer Pest syntax for new tests.
+- Create tests with `vendor/bin/sail artisan make:test --pest {name}` (add `--unit` for unit tests). Browser tests live under `tests/Browser`.
+- Existing PHPUnit-style classes remain valid; do not convert Pest tests back to PHPUnit.
 - Every time a test has been updated, run that singular test.
 - When the tests relating to your feature are passing, ask the user if they would like to also run the entire test suite to make sure everything is still passing.
 - Tests should cover all happy paths, failure paths, and edge cases.
@@ -293,7 +295,7 @@ protected function isAccessible(User $user, ?string $path = null): bool
 ## Running Tests
 
 - Run the minimal number of tests, using an appropriate filter, before finalizing.
-- To run all tests: `vendor/bin/sail artisan test --compact`.
+- To run all tests: `vendor/bin/sail artisan test --compact` or `vendor/bin/sail pest --compact`.
 - To run all tests in a file: `vendor/bin/sail artisan test --compact tests/Feature/ExampleTest.php`.
 - To filter on a particular test name: `vendor/bin/sail artisan test --compact --filter=testName` (recommended after making a change to a related file).
 

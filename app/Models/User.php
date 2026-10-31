@@ -24,13 +24,10 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'is_admin',
-        'is_approved',
-        'is_scheduled',
     ];
 
     protected $appends = [
-        'deleted',
+        'is_deleted',
     ];
 
     protected $hidden = [

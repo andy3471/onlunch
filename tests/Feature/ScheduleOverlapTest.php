@@ -127,8 +127,10 @@ class ScheduleOverlapTest extends TestCase
         $this->attachOnboardedMember($site, $team, $user);
         $date          = now()->addDay()->toDateString();
 
+        $task = \App\Models\Task::create(['name' => 'Overlapping task', 'team_id' => $team->id]);
+
         TaskAssignment::createWithTimeBlock(
-            ['team_id' => $team->id, 'user_id' => $user->id, 'task_id' => null],
+            ['team_id' => $team->id, 'user_id' => $user->id, 'task_id' => $task->id],
             ['date' => $date, 'start_time' => '09:00', 'end_time' => '12:00'],
         );
 

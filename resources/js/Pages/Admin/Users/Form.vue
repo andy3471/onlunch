@@ -5,19 +5,11 @@ import AppLayout from '@/Layouts/AppLayout.vue';
 import AdminNav from '@/Components/AdminNav.vue';
 import Button from '@/Components/Button.vue';
 import Toast from '@/Components/Toast.vue';
+import { useToast } from '@/Composables/useToast';
+import type { TeamFilterOptionData, WorkingHourPresetData } from '@/Types/generated';
+import { destroy as destroyUser, index as usersIndex, store, update } from '@/routes/manage/users';
 
-type PresetOption = {
-    id: string;
-    name: string;
-    startTime: string;
-    endTime: string;
-    label: string;
-};
-
-type TeamOption = {
-    id: string;
-    name: string;
-};
+type TeamOption = TeamFilterOptionData;
 
 type TeamMembershipForm = {
     teamId: string;
@@ -35,7 +27,7 @@ type UserFormData = {
 };
 
 const props = defineProps<{
-    presets: PresetOption[];
+    presets: WorkingHourPresetData[];
     teams: TeamOption[];
     defaultTeamId: string | null;
     workingHourPresetId: string | null;
@@ -57,7 +49,7 @@ const memberships = ref<TeamMembershipForm[]>(
 const password = ref('');
 const passwordConfirmation = ref('');
 const submitting = ref(false);
-const toast = ref<{ type: string; message: string } | null>(null);
+const { toast, showSuccess, showFirstError } = useToast();
 
 const membershipForTeam = (teamId: string): TeamMembershipForm | undefined => {
     return memberships.value.find((membership) => membership.teamId === teamId);
@@ -80,9 +72,7 @@ watch(
     },
 );
 
-const payload = () => ({
-    name: name.value,
-    email: email.value,
+const membershipPayload = () => ({
     is_admin: isAdmin.value,
     working_hour_preset_id: workingHourPresetId.value || null,
     time_off_approval: timeOffApproval.value,
@@ -94,23 +84,26 @@ const payload = () => ({
             schedule_visibility: membership.scheduleVisibility,
             is_time_off_approver: membership.isTimeOffApprover,
         })),
-    ...(password.value ? { password: password.value, password_confirmation: passwordConfirmation.value } : {}),
 });
 
-const submit = () => {
+const createPayload = () => ({
+    name: name.value,
+    email: email.value,
+    password: password.value,
+    password_confirmation: passwordConfirmation.value,
+    ...membershipPayload(),
+});
+
+const submit = (): void => {
     submitting.value = true;
 
     const options = {
         preserveScroll: true,
         onSuccess: () => {
-            toast.value = { type: 'success', message: isEditing.value ? 'User updated.' : 'User created.' };
+            showSuccess(isEditing.value ? 'User updated.' : 'User created.');
         },
-        onError: (errors: Record<string, string | string[]>) => {
-            const firstError = Object.values(errors)[0];
-            toast.value = {
-                type: 'error',
-                message: Array.isArray(firstError) ? firstError[0] : 'Could not save user.',
-            };
+        onError: (errors: Record<string, string>) => {
+            showFirstError(errors, 'Could not save user.');
         },
         onFinish: () => {
             submitting.value = false;
@@ -118,9 +111,9 @@ const submit = () => {
     };
 
     if (isEditing.value && props.user) {
-        router.put(`/manage/users/${props.user.id}`, payload(), options);
+        router.put(update.url({ user: props.user.id }), membershipPayload(), options);
     } else {
-        router.post('/manage/users', payload(), options);
+        router.post(store.url(), createPayload(), options);
     }
 };
 
@@ -129,7 +122,7 @@ const destroy = () => {
         return;
     }
 
-    router.delete(`/manage/users/${props.user.id}`);
+    router.delete(destroyUser.url({ user: props.user.id }));
 };
 </script>
 
@@ -145,15 +138,29 @@ const destroy = () => {
             </div>
 
             <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-slate-300 mb-2">Name</label>
-                    <input v-model="name" type="text" class="input" required>
-                </div>
+                <template v-if="isEditing">
+                    <div>
+                        <span class="block text-sm font-medium text-slate-300 mb-2">Name</span>
+                        <p class="input opacity-75">{{ user?.name }}</p>
+                    </div>
 
-                <div>
-                    <label class="block text-sm font-medium text-slate-300 mb-2">Email</label>
-                    <input v-model="email" type="email" class="input" required>
-                </div>
+                    <div>
+                        <span class="block text-sm font-medium text-slate-300 mb-2">Email</span>
+                        <p class="input opacity-75">{{ user?.email }}</p>
+                    </div>
+                </template>
+
+                <template v-else>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-2">Name</label>
+                        <input v-model="name" type="text" class="input" required>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-2">Email</label>
+                        <input v-model="email" type="email" class="input" required>
+                    </div>
+                </template>
 
                 <label class="flex items-center gap-2 text-sm text-slate-300">
                     <input v-model="isAdmin" type="checkbox" class="rounded border-slate-600 bg-slate-800 text-indigo-500">
@@ -246,24 +253,24 @@ const destroy = () => {
                     </div>
                 </div>
 
-                <div>
-                    <label class="block text-sm font-medium text-slate-300 mb-2">
-                        {{ isEditing ? 'New password (optional)' : 'Password' }}
-                    </label>
-                    <input v-model="password" type="password" class="input" :required="!isEditing">
-                </div>
+                <template v-if="!isEditing">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-2">Password</label>
+                        <input v-model="password" type="password" class="input" required>
+                    </div>
 
-                <div v-if="password || !isEditing">
-                    <label class="block text-sm font-medium text-slate-300 mb-2">Confirm password</label>
-                    <input v-model="passwordConfirmation" type="password" class="input" :required="!isEditing || !!password">
-                </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-2">Confirm password</label>
+                        <input v-model="passwordConfirmation" type="password" class="input" required>
+                    </div>
+                </template>
             </div>
 
             <div class="flex items-center gap-3">
                 <Button class="flex-1" :disabled="submitting" @click="submit">
                     {{ isEditing ? 'Save changes' : 'Create user' }}
                 </Button>
-                <Link href="/manage/users" class="text-sm text-slate-400 hover:text-slate-300">
+                <Link :href="usersIndex.url()" class="text-sm text-slate-400 hover:text-slate-300">
                     Cancel
                 </Link>
             </div>

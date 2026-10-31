@@ -35,7 +35,27 @@ class TaskAssignmentTest extends TestCase
         ]);
     }
 
-    public function test_user_can_store_custom_task_name(): void
+    public function test_admin_can_store_custom_task_name(): void
+    {
+        [$site, $team] = $this->createSiteWithTeam(['slug' => 'acme']);
+        $admin         = User::factory()->create();
+        $this->attachOnboardedMember($site, $team, $admin, ['is_site_admin' => true]);
+
+        $response = $this->actingAs($admin)->post('http://acme.localhost/task-assignments', [
+            'date'       => now()->addDay()->toDateString(),
+            'start_time' => '09:00',
+            'end_time'   => '12:00',
+            'task_name'  => 'Client call with Acme',
+        ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('tasks', [
+            'team_id' => $team->id,
+            'name'    => 'Client call with Acme',
+        ]);
+    }
+
+    public function test_member_cannot_create_unknown_task_name(): void
     {
         [$site, $team] = $this->createSiteWithTeam(['slug' => 'acme']);
         $user          = User::factory()->create();
@@ -48,11 +68,7 @@ class TaskAssignmentTest extends TestCase
             'task_name'  => 'Client call with Acme',
         ]);
 
-        $response->assertRedirect();
-        $this->assertDatabaseHas('tasks', [
-            'team_id' => $team->id,
-            'name'    => 'Client call with Acme',
-        ]);
+        $response->assertSessionHasErrors('task_name');
     }
 
     public function test_user_can_delete_task_assignment(): void
@@ -102,19 +118,19 @@ class TaskAssignmentTest extends TestCase
         $this->assertSame('11:30', $assignment->timeBlock->end_time);
     }
 
-    public function test_user_can_rename_task_assignment_to_new_custom_name(): void
+    public function test_admin_can_rename_task_assignment_to_new_custom_name(): void
     {
         [$site, $team] = $this->createSiteWithTeam(['slug' => 'acme']);
-        $user          = User::factory()->create();
-        $this->attachOnboardedMember($site, $team, $user);
+        $admin         = User::factory()->create();
+        $this->attachOnboardedMember($site, $team, $admin, ['is_site_admin' => true]);
         $task = Task::create(['name' => 'Deep Work', 'team_id' => $team->id]);
 
         $assignment = TaskAssignment::createWithTimeBlock(
-            ['team_id' => $team->id, 'user_id' => $user->id, 'task_id' => $task->id],
+            ['team_id' => $team->id, 'user_id' => $admin->id, 'task_id' => $task->id],
             ['date' => now()->addDay()->toDateString(), 'start_time' => '09:00', 'end_time' => '12:00'],
         );
 
-        $response = $this->actingAs($user)->put(route('task-assignments.update', [
+        $response = $this->actingAs($admin)->put(route('task-assignments.update', [
             'tenant'         => 'acme',
             'taskAssignment' => $assignment->id,
         ]), [

@@ -2,8 +2,6 @@
 
 declare(strict_types=1);
 
-use Rector\Arguments\Rector\ClassMethod\ArgumentAdderRector;
-use Rector\CodeQuality\Rector\ClassMethod\OptionalParametersAfterRequiredRector;
 use Rector\CodeQuality\Rector\If_\ExplicitBoolCompareRector;
 use Rector\CodingStyle\Rector\Encapsed\EncapsedStringsToSprintfRector;
 use Rector\Config\RectorConfig;
@@ -53,10 +51,4 @@ return RectorConfig::configure()
     ->withSkip([
         EncapsedStringsToSprintfRector::class,
         ExplicitBoolCompareRector::class,
-        ArgumentAdderRector::class => [
-            __DIR__.'/app/Http/Middleware/Filament/Authenticate.php',
-        ],
-        OptionalParametersAfterRequiredRector::class => [
-            __DIR__.'/app/Http/Middleware/Filament/Authenticate.php',
-        ],
     ]);

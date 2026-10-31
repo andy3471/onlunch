@@ -1,6 +1,7 @@
-<script setup>
+<script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
 import BrochureLayout from '@/Layouts/BrochureLayout.vue';
+import { register } from '@/routes/sites';
 </script>
 
 <template>
@@ -18,7 +19,7 @@ import BrochureLayout from '@/Layouts/BrochureLayout.vue';
                     </p>
                     <div class="mt-10 flex items-center justify-center gap-4">
                         <Link
-                            href="/register"
+                            :href="register.url()"
                             class="px-6 py-3 rounded-xl text-base font-semibold bg-primary-600 text-white hover:bg-primary-500 transition-colors"
                         >
                             Get Started

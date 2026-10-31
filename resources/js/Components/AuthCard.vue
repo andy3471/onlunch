@@ -1,12 +1,9 @@
-<script setup>
+<script setup lang="ts">
 import AuthLayout from '@/Layouts/AuthLayout.vue';
 
-defineProps({
-    title: {
-        type: String,
-        required: true,
-    },
-});
+defineProps<{
+    title: string;
+}>();
 </script>
 
 <template>

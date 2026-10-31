@@ -3,15 +3,11 @@ import { Link } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import AdminNav from '@/Components/AdminNav.vue';
 import Button from '@/Components/Button.vue';
-
-type TaskRow = {
-    id: string;
-    name: string;
-    color: string | null;
-};
+import type { TaskOptionData } from '@/Types/generated';
+import { create, edit } from '@/routes/manage/tasks';
 
 defineProps<{
-    tasks: TaskRow[];
+    tasks: TaskOptionData[];
 }>();
 </script>
 
@@ -25,7 +21,7 @@ defineProps<{
                     <h2 class="text-lg font-semibold text-slate-100">Default tasks</h2>
                     <p class="text-sm text-slate-400">Task names and colours shown as suggestions on the schedule.</p>
                 </div>
-                <Link href="/manage/tasks/create">
+                <Link :href="create.url()">
                     <Button>Add task</Button>
                 </Link>
             </div>
@@ -52,7 +48,7 @@ defineProps<{
                             </td>
                             <td class="px-6 py-3 text-right">
                                 <Link
-                                    :href="`/manage/tasks/${task.id}/edit`"
+                                    :href="edit.url({ task: task.id })"
                                     class="text-indigo-400 hover:text-indigo-300"
                                 >
                                     Edit

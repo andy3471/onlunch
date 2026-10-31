@@ -1,8 +1,10 @@
-<script setup>
+<script setup lang="ts">
 import { useForm, Link } from '@inertiajs/vue3';
 import AuthCard from '@/Components/AuthCard.vue';
 import Input from '@/Components/Input.vue';
 import Button from '@/Components/Button.vue';
+import { store as registerStore } from '@/actions/App/Http/Controllers/Auth/RegisterController';
+import { login } from '@/routes/index';
 
 const form = useForm({
     name: '',
@@ -11,8 +13,8 @@ const form = useForm({
     password_confirmation: '',
 });
 
-const submit = () => {
-    form.post('/register', {
+const submit = (): void => {
+    form.post(registerStore.url(), {
         onFinish: () => form.reset('password', 'password_confirmation'),
     });
 };
@@ -71,7 +73,7 @@ const submit = () => {
         <div class="mt-6 pt-6 border-t border-slate-700/50 text-center">
             <p class="text-slate-400 text-sm">
                 Already have an account?
-                <Link href="/login" class="text-primary-400 hover:text-primary-300 transition-colors">
+                <Link :href="login.url()" class="text-primary-400 hover:text-primary-300 transition-colors">
                     Login
                 </Link>
             </p>

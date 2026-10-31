@@ -1,32 +1,24 @@
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue';
 
-const props = defineProps({
-    type: {
-        type: String,
-        default: 'button',
-    },
-    variant: {
-        type: String,
-        default: 'primary',
-        validator: (value) => ['primary', 'secondary', 'danger', 'ghost'].includes(value),
-    },
-    size: {
-        type: String,
-        default: 'md',
-        validator: (value) => ['sm', 'md', 'lg'].includes(value),
-    },
-    disabled: {
-        type: Boolean,
-        default: false,
-    },
-    loading: {
-        type: Boolean,
-        default: false,
-    },
+type ButtonVariant = 'primary' | 'secondary' | 'danger' | 'ghost';
+type ButtonSize = 'sm' | 'md' | 'lg';
+
+const props = withDefaults(defineProps<{
+    type?: 'button' | 'submit' | 'reset';
+    variant?: ButtonVariant;
+    size?: ButtonSize;
+    disabled?: boolean;
+    loading?: boolean;
+}>(), {
+    type: 'button',
+    variant: 'primary',
+    size: 'md',
+    disabled: false,
+    loading: false,
 });
 
-const sizeClasses = {
+const sizeClasses: Record<ButtonSize, string> = {
     sm: 'px-3 py-1.5 text-xs',
     md: 'px-4 py-2 text-sm',
     lg: 'px-6 py-3 text-base',

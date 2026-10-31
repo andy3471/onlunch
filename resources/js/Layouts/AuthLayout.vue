@@ -1,14 +1,15 @@
-<script setup>
+<script setup lang="ts">
 import { computed } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import AppLogo from '@/Components/AppLogo.vue';
 import Toast from '@/Components/Toast.vue';
+import { login } from '@/routes/index';
 
 const page = usePage();
 
-const config = computed(() => page.props.config || {});
-const flash = computed(() => page.props.flash || {});
-const currentSite = computed(() => page.props.currentSite || null);
+const config = computed(() => page.props.config);
+const flash = computed(() => page.props.flash);
+const currentSite = computed(() => page.props.currentSite);
 </script>
 
 <template>
@@ -16,7 +17,7 @@ const currentSite = computed(() => page.props.currentSite || null);
         <header class="sticky top-0 z-40 border-b border-white/5 bg-slate-950/75 backdrop-blur-md">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex items-center justify-center h-14">
-                    <Link href="/login" class="flex items-center gap-3 min-w-0 group">
+                    <Link :href="login.url()" class="flex items-center gap-3 min-w-0 group">
                         <AppLogo />
                         <div class="min-w-0 leading-tight text-center sm:text-left">
                             <p class="text-sm font-semibold text-white truncate group-hover:text-primary-100 transition-colors">

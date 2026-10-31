@@ -4,30 +4,47 @@ declare(strict_types=1);
 
 namespace App\Console\Commands;
 
+use App\Models\Site;
 use App\Models\User;
 use Illuminate\Console\Command;
 
 class MakeAdmin extends Command
 {
-    protected $signature = 'admin:make {user=admin}';
+    protected $signature = 'admin:make {user : User email} {site : Site slug}';
 
-    protected $description = 'Command description';
+    protected $description = 'Grant site admin on the given site slug';
 
-    public function handle(): void
+    public function handle(): int
     {
-        $user = User::where('email', $this->argument('user'))->first();
+        $user = User::query()->where('email', $this->argument('user'))->first();
 
-        if (! $user) {
+        if (! $user instanceof User) {
             $this->warn('User not found');
 
-            return;
+            return self::FAILURE;
         }
 
-        $user->update([
-            'is_admin'    => 1,
-            'is_approved' => 1,
-        ]);
+        $site = Site::query()->where('slug', $this->argument('site'))->first();
 
-        $this->info("{$user->name} is now an admin");
+        if (! $site instanceof Site) {
+            $this->warn('Site not found');
+
+            return self::FAILURE;
+        }
+
+        if ($user->siteMembershipFor($site) === null) {
+            $site->members()->attach($user->id, [
+                'is_site_admin'            => true,
+                'onboarding_completed_at'  => now(),
+            ]);
+        } else {
+            $site->members()->updateExistingPivot($user->id, [
+                'is_site_admin' => true,
+            ]);
+        }
+
+        $this->info("{$user->name} is now a site admin for {$site->slug}");
+
+        return self::SUCCESS;
     }
 }

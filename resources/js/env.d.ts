@@ -1,13 +1,24 @@
 /// <reference types="vite/client" />
 
 declare module '*.vue' {
-  import type { DefineComponent } from 'vue';
+    import type { DefineComponent } from 'vue';
 
-  const component: DefineComponent<
-    Record<string, unknown>,
-    Record<string, unknown>,
-    unknown
-  >;
+    const component: DefineComponent<
+        Record<string, unknown>,
+        Record<string, unknown>,
+        unknown
+    >;
+    export default component;
+}
 
-  export default component;
+interface ImportMetaEnv {
+  readonly VITE_APP_NAME?: string;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+
+interface Window {
+  axios: import('axios').AxiosStatic;
 }

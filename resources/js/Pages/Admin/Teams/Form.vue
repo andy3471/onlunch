@@ -5,6 +5,8 @@ import AppLayout from '@/Layouts/AppLayout.vue';
 import AdminNav from '@/Components/AdminNav.vue';
 import Button from '@/Components/Button.vue';
 import Toast from '@/Components/Toast.vue';
+import { useToast } from '@/Composables/useToast';
+import { index as teamsIndex, store, update } from '@/routes/manage/teams';
 
 type TeamFormData = {
     id: string;
@@ -21,7 +23,7 @@ const isEditing = computed(() => props.team !== null);
 const name = ref(props.team?.name ?? '');
 const minimumAvailableStaff = ref(props.team?.minimumAvailableStaff?.toString() ?? '');
 const submitting = ref(false);
-const toast = ref<{ type: string; message: string } | null>(null);
+const { toast, showSuccess, showFirstError } = useToast();
 
 const payload = () => ({
     name: name.value,
@@ -34,14 +36,10 @@ const submit = () => {
     const options = {
         preserveScroll: true,
         onSuccess: () => {
-            toast.value = { type: 'success', message: isEditing.value ? 'Team updated.' : 'Team created.' };
+            showSuccess(isEditing.value ? 'Team updated.' : 'Team created.');
         },
-        onError: (errors: Record<string, string | string[]>) => {
-            const firstError = Object.values(errors)[0];
-            toast.value = {
-                type: 'error',
-                message: Array.isArray(firstError) ? firstError[0] : 'Could not save team.',
-            };
+        onError: (errors: Record<string, string>) => {
+            showFirstError(errors, 'Could not save team.');
         },
         onFinish: () => {
             submitting.value = false;
@@ -49,9 +47,9 @@ const submit = () => {
     };
 
     if (isEditing.value && props.team) {
-        router.put(`/manage/teams/${props.team.id}`, payload(), options);
+        router.put(update.url({ team: props.team.id }), payload(), options);
     } else {
-        router.post('/manage/teams', payload(), options);
+        router.post(store.url(), payload(), options);
     }
 };
 </script>
@@ -90,7 +88,7 @@ const submit = () => {
                 <Button :disabled="submitting" @click="submit">
                     {{ isEditing ? 'Save changes' : 'Create team' }}
                 </Button>
-                <Link href="/manage/teams" class="text-sm text-slate-400 hover:text-slate-300">
+                <Link :href="teamsIndex.url()" class="text-sm text-slate-400 hover:text-slate-300">
                     Cancel
                 </Link>
             </div>
