@@ -279,9 +279,9 @@ export const update = (args: { tenant?: string | number, task: string | number }
 })
 
 update.definition = {
-    methods: ["put"],
+    methods: ["put","patch"],
     url: '//{tenant?}.localhost/manage/tasks/{task}',
-} satisfies RouteDefinition<["put"]>
+} satisfies RouteDefinition<["put","patch"]>
 
 /**
 * @see \App\Http\Controllers\Admin\TaskController::update
@@ -323,6 +323,17 @@ update.url = (args: { tenant?: string | number, task: string | number } | [tenan
 update.put = (args: { tenant?: string | number, task: string | number } | [tenant: string | number, task: string | number ], options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: update.url(args, options),
     method: 'put',
+})
+
+/**
+* @see \App\Http\Controllers\Admin\TaskController::update
+* @see app/Http/Controllers/Admin/TaskController.php:75
+* @param tenant - Default: '$site'
+* @route '//{tenant?}.localhost/manage/tasks/{task}'
+*/
+update.patch = (args: { tenant?: string | number, task: string | number } | [tenant: string | number, task: string | number ], options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+    url: update.url(args, options),
+    method: 'patch',
 })
 
 /**

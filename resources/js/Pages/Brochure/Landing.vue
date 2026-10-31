@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
 import BrochureLayout from '@/Layouts/BrochureLayout.vue';
-import { register } from '@/routes/sites';
+import { create as register } from '@/routes/sites';
 </script>
 
 <template>

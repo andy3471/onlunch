@@ -279,9 +279,9 @@ export const update = (args: { tenant?: string | number, team: string | number }
 })
 
 update.definition = {
-    methods: ["put"],
+    methods: ["put","patch"],
     url: '//{tenant?}.localhost/manage/teams/{team}',
-} satisfies RouteDefinition<["put"]>
+} satisfies RouteDefinition<["put","patch"]>
 
 /**
 * @see \App\Http\Controllers\Admin\TeamController::update
@@ -323,6 +323,17 @@ update.url = (args: { tenant?: string | number, team: string | number } | [tenan
 update.put = (args: { tenant?: string | number, team: string | number } | [tenant: string | number, team: string | number ], options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: update.url(args, options),
     method: 'put',
+})
+
+/**
+* @see \App\Http\Controllers\Admin\TeamController::update
+* @see app/Http/Controllers/Admin/TeamController.php:73
+* @param tenant - Default: '$site'
+* @route '//{tenant?}.localhost/manage/teams/{team}'
+*/
+update.patch = (args: { tenant?: string | number, team: string | number } | [tenant: string | number, team: string | number ], options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+    url: update.url(args, options),
+    method: 'patch',
 })
 
 const teams = {

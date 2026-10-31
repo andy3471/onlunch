@@ -1,52 +1,52 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition } from './../../wayfinder'
 /**
-* @see \App\Http\Controllers\Brochure\SiteRegistrationController::register
+* @see \App\Http\Controllers\Brochure\SiteRegistrationController::create
 * @see app/Http/Controllers/Brochure/SiteRegistrationController.php:22
-* @route '//localhost/register'
+* @route '//localhost/sites/create'
 */
-export const register = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
-    url: register.url(options),
+export const create = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: create.url(options),
     method: 'get',
 })
 
-register.definition = {
+create.definition = {
     methods: ["get","head"],
-    url: '//localhost/register',
+    url: '//localhost/sites/create',
 } satisfies RouteDefinition<["get","head"]>
 
 /**
-* @see \App\Http\Controllers\Brochure\SiteRegistrationController::register
+* @see \App\Http\Controllers\Brochure\SiteRegistrationController::create
 * @see app/Http/Controllers/Brochure/SiteRegistrationController.php:22
-* @route '//localhost/register'
+* @route '//localhost/sites/create'
 */
-register.url = (options?: RouteQueryOptions) => {
-    return register.definition.url + queryParams(options)
+create.url = (options?: RouteQueryOptions) => {
+    return create.definition.url + queryParams(options)
 }
 
 /**
-* @see \App\Http\Controllers\Brochure\SiteRegistrationController::register
+* @see \App\Http\Controllers\Brochure\SiteRegistrationController::create
 * @see app/Http/Controllers/Brochure/SiteRegistrationController.php:22
-* @route '//localhost/register'
+* @route '//localhost/sites/create'
 */
-register.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
-    url: register.url(options),
+create.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
+    url: create.url(options),
     method: 'get',
 })
 
 /**
-* @see \App\Http\Controllers\Brochure\SiteRegistrationController::register
+* @see \App\Http\Controllers\Brochure\SiteRegistrationController::create
 * @see app/Http/Controllers/Brochure/SiteRegistrationController.php:22
-* @route '//localhost/register'
+* @route '//localhost/sites/create'
 */
-register.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
-    url: register.url(options),
+create.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
+    url: create.url(options),
     method: 'head',
 })
 
 /**
 * @see \App\Http\Controllers\Brochure\SiteRegistrationController::store
 * @see app/Http/Controllers/Brochure/SiteRegistrationController.php:27
-* @route '//localhost/register'
+* @route '//localhost/sites'
 */
 export const store = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: store.url(options),
@@ -55,13 +55,13 @@ export const store = (options?: RouteQueryOptions): RouteDefinition<'post'> => (
 
 store.definition = {
     methods: ["post"],
-    url: '//localhost/register',
+    url: '//localhost/sites',
 } satisfies RouteDefinition<["post"]>
 
 /**
 * @see \App\Http\Controllers\Brochure\SiteRegistrationController::store
 * @see app/Http/Controllers/Brochure/SiteRegistrationController.php:27
-* @route '//localhost/register'
+* @route '//localhost/sites'
 */
 store.url = (options?: RouteQueryOptions) => {
     return store.definition.url + queryParams(options)
@@ -70,7 +70,7 @@ store.url = (options?: RouteQueryOptions) => {
 /**
 * @see \App\Http\Controllers\Brochure\SiteRegistrationController::store
 * @see app/Http/Controllers/Brochure/SiteRegistrationController.php:27
-* @route '//localhost/register'
+* @route '//localhost/sites'
 */
 store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: store.url(options),
@@ -78,7 +78,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 })
 
 const sites = {
-    register: Object.assign(register, register),
+    create: Object.assign(create, create),
     store: Object.assign(store, store),
 }
 

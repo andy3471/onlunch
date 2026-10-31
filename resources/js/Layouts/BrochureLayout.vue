@@ -2,7 +2,7 @@
 import { Link } from '@inertiajs/vue3';
 import AppLogo from '@/Components/AppLogo.vue';
 import { home } from '@/routes/brochure';
-import { register } from '@/routes/sites';
+import { create as register } from '@/routes/sites';
 </script>
 
 <template>

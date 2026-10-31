@@ -13,7 +13,7 @@ import {
     destroy as destroyLunchBooking,
     store as storeLunchBooking,
     update as updateLunchBooking,
-} from '@/routes/lunch-booking';
+} from '@/routes/lunch-bookings';
 import {
     destroy as destroyTaskAssignment,
     store as storeTaskAssignment,
@@ -527,10 +527,10 @@ const removeAssignment = (assignmentId: string): void => {
     });
 };
 
-const removeLunchBooking = (): void => {
+const removeLunchBooking = (lunchBookingId: string): void => {
     submitting.value = true;
 
-    router.delete(destroyLunchBooking.url(), {
+    router.delete(destroyLunchBooking.url({ lunchBooking: lunchBookingId }), {
         preserveScroll: true,
         only: reloadKeys,
         onSuccess: () => showToast('success', 'Lunch removed.'),

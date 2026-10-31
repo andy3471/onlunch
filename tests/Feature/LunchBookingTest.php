@@ -19,7 +19,7 @@ class LunchBookingTest extends TestCase
         $user          = User::factory()->create();
         $this->attachOnboardedMember($site, $team, $user);
 
-        $response = $this->actingAs($user)->post(route('lunch-booking.store', ['tenant' => 'acme']), [
+        $response = $this->actingAs($user)->post(route('lunch-bookings.store', ['tenant' => 'acme']), [
             'start_time' => '12:00',
             'end_time'   => '13:00',
         ]);
@@ -49,7 +49,7 @@ class LunchBookingTest extends TestCase
             ['date' => now()->toDateString(), 'start_time' => '12:00', 'end_time' => '13:00'],
         );
 
-        $response = $this->actingAs($user)->put(route('lunch-booking.update', [
+        $response = $this->actingAs($user)->put(route('lunch-bookings.update', [
             'tenant'       => 'acme',
             'lunchBooking' => $booking->id,
         ]), [

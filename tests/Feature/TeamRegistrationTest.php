@@ -17,7 +17,7 @@ class TeamRegistrationTest extends TestCase
     /** A site can be created with an admin user via the registration form. */
     public function test_team_can_be_registered(): void
     {
-        $response = $this->post('http://localhost/register', [
+        $response = $this->post(route('sites.store'), [
             'team_name'             => 'Test Team',
             'team_slug'             => 'test-team',
             'name'                  => 'Jane Smith',
@@ -51,7 +51,7 @@ class TeamRegistrationTest extends TestCase
     /** Team registration requires all fields. */
     public function test_team_registration_requires_all_fields(): void
     {
-        $response = $this->post('http://localhost/register', []);
+        $response = $this->post(route('sites.store'), []);
 
         $response->assertSessionHasErrors([
             'team_name',
@@ -67,7 +67,7 @@ class TeamRegistrationTest extends TestCase
     {
         Site::factory()->create(['slug' => 'taken-slug']);
 
-        $response = $this->post('http://localhost/register', [
+        $response = $this->post(route('sites.store'), [
             'team_name'             => 'Another Team',
             'team_slug'             => 'taken-slug',
             'name'                  => 'John',
@@ -84,7 +84,7 @@ class TeamRegistrationTest extends TestCase
     {
         User::factory()->create(['email' => 'taken@example.com']);
 
-        $response = $this->post('http://localhost/register', [
+        $response = $this->post(route('sites.store'), [
             'team_name'             => 'New Team',
             'team_slug'             => 'new-team',
             'name'                  => 'John',

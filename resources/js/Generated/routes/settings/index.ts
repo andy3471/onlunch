@@ -81,9 +81,9 @@ export const update = (args?: { tenant?: string | number } | [tenant: string | n
 })
 
 update.definition = {
-    methods: ["put"],
+    methods: ["put","patch"],
     url: '//{tenant?}.localhost/settings',
-} satisfies RouteDefinition<["put"]>
+} satisfies RouteDefinition<["put","patch"]>
 
 /**
 * @see \App\Http\Controllers\User\SettingsController::update
@@ -126,6 +126,17 @@ update.url = (args?: { tenant?: string | number } | [tenant: string | number ] |
 update.put = (args?: { tenant?: string | number } | [tenant: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: update.url(args, options),
     method: 'put',
+})
+
+/**
+* @see \App\Http\Controllers\User\SettingsController::update
+* @see app/Http/Controllers/User/SettingsController.php:41
+* @param tenant - Default: '$site'
+* @route '//{tenant?}.localhost/settings'
+*/
+update.patch = (args?: { tenant?: string | number } | [tenant: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+    url: update.url(args, options),
+    method: 'patch',
 })
 
 const settings = {

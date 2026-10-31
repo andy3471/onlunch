@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('brochure.home');
 
-Route::get('/register', [SiteRegistrationController::class, 'create'])->name('sites.register');
-Route::post('/register', [SiteRegistrationController::class, 'store'])
-    ->middleware('throttle:6,1')
-    ->name('sites.store');
+Route::resource('sites', SiteRegistrationController::class)
+    ->only(['create', 'store'])
+    ->middlewareFor('store', 'throttle:6,1');

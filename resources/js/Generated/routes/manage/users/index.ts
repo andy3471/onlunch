@@ -279,9 +279,9 @@ export const update = (args: { tenant?: string | number, user: string | number }
 })
 
 update.definition = {
-    methods: ["put"],
+    methods: ["put","patch"],
     url: '//{tenant?}.localhost/manage/users/{user}',
-} satisfies RouteDefinition<["put"]>
+} satisfies RouteDefinition<["put","patch"]>
 
 /**
 * @see \App\Http\Controllers\Admin\UserController::update
@@ -323,6 +323,17 @@ update.url = (args: { tenant?: string | number, user: string | number } | [tenan
 update.put = (args: { tenant?: string | number, user: string | number } | [tenant: string | number, user: string | number ], options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: update.url(args, options),
     method: 'put',
+})
+
+/**
+* @see \App\Http\Controllers\Admin\UserController::update
+* @see app/Http/Controllers/Admin/UserController.php:70
+* @param tenant - Default: '$site'
+* @route '//{tenant?}.localhost/manage/users/{user}'
+*/
+update.patch = (args: { tenant?: string | number, user: string | number } | [tenant: string | number, user: string | number ], options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+    url: update.url(args, options),
+    method: 'patch',
 })
 
 /**

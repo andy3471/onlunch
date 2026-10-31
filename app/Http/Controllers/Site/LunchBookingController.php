@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Site;
 
-use App\Actions\LunchBookings\DeleteLunchBookingAction;
 use App\Actions\LunchBookings\StoreLunchBookingAction;
 use App\Actions\LunchBookings\UpdateLunchBookingAction;
 use App\Http\Controllers\Controller;
@@ -22,7 +21,6 @@ class LunchBookingController extends Controller
     public function __construct(
         private readonly StoreLunchBookingAction $storeLunchBooking,
         private readonly UpdateLunchBookingAction $updateLunchBooking,
-        private readonly DeleteLunchBookingAction $deleteLunchBooking,
     ) {}
 
     public function store(StoreLunchBookingRequest $request, Site $site): RedirectResponse
@@ -47,10 +45,7 @@ class LunchBookingController extends Controller
         /** @var User $user */
         $user = $request->user();
 
-        $booking = LunchBooking::query()
-            ->whereIn('team_id', $site->teamIds())
-            ->with('timeBlock')
-            ->findOrFail((string) $request->route('lunchBooking'));
+        $booking = $this->resolveSiteBooking($site, (string) $request->route('lunchBooking'));
 
         $this->authorize('update', $booking);
 
@@ -69,12 +64,23 @@ class LunchBookingController extends Controller
 
     public function destroy(Request $request, Site $site): RedirectResponse
     {
-        /** @var User $user */
-        $user  = $request->user();
-        $today = Date::today()->toDateString();
+        $booking = $this->resolveSiteBooking($site, (string) $request->route('lunchBooking'));
 
-        $this->deleteLunchBooking->execute($site, $user, $today);
+        $this->authorize('delete', $booking);
 
-        return redirect()->route('home')->with('message', 'Lunch booking removed.');
+        $booking->loadMissing('timeBlock');
+        $date = $booking->timeBlock?->date->toDateString() ?? Date::today()->toDateString();
+
+        $booking->delete();
+
+        return redirect('/?date='.$date)->with('message', 'Lunch booking removed.');
+    }
+
+    protected function resolveSiteBooking(Site $site, string $lunchBookingId): LunchBooking
+    {
+        return LunchBooking::query()
+            ->whereIn('team_id', $site->teamIds())
+            ->with('timeBlock')
+            ->findOrFail($lunchBookingId);
     }
 }

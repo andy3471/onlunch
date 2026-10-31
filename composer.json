@@ -12,6 +12,7 @@
         "ext-intl": "*",
         "ext-pdo_pgsql": "*",
         "ext-redis": "*",
+        "ext-sockets": "*",
         "ext-zip": "*",
         "guzzlehttp/guzzle": "^7.2",
         "inertiajs/inertia-laravel": "^1.0",

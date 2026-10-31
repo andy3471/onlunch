@@ -58,7 +58,7 @@ it('returns 404 when updating another site lunch booking by id', function (): vo
         ['date' => now()->toDateString(), 'start_time' => '12:00', 'end_time' => '13:00'],
     );
 
-    $response = $this->actingAs($userA)->put(route('lunch-booking.update', [
+    $response = $this->actingAs($userA)->put(route('lunch-bookings.update', [
         'tenant'       => 'alpha',
         'lunchBooking' => $bookingB->id,
     ]), [

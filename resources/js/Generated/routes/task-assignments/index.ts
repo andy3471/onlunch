@@ -70,9 +70,9 @@ export const update = (args: { tenant?: string | number, taskAssignment: string 
 })
 
 update.definition = {
-    methods: ["put"],
+    methods: ["put","patch"],
     url: '//{tenant?}.localhost/task-assignments/{taskAssignment}',
-} satisfies RouteDefinition<["put"]>
+} satisfies RouteDefinition<["put","patch"]>
 
 /**
 * @see \App\Http\Controllers\Site\TaskAssignmentController::update
@@ -114,6 +114,17 @@ update.url = (args: { tenant?: string | number, taskAssignment: string | number 
 update.put = (args: { tenant?: string | number, taskAssignment: string | number } | [tenant: string | number, taskAssignment: string | number ], options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: update.url(args, options),
     method: 'put',
+})
+
+/**
+* @see \App\Http\Controllers\Site\TaskAssignmentController::update
+* @see app/Http/Controllers/Site/TaskAssignmentController.php:58
+* @param tenant - Default: '$site'
+* @route '//{tenant?}.localhost/task-assignments/{taskAssignment}'
+*/
+update.patch = (args: { tenant?: string | number, taskAssignment: string | number } | [tenant: string | number, taskAssignment: string | number ], options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+    url: update.url(args, options),
+    method: 'patch',
 })
 
 /**

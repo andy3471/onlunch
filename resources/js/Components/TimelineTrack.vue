@@ -38,7 +38,7 @@ const emit = defineEmits<{
     blockDoubleClick: [block: TimeBlockData];
     openEdit: [block: TimeBlockData];
     removeAssignment: [assignmentId: string];
-    removeLunch: [];
+    removeLunch: [lunchBookingId: string];
 }>();
 </script>
 
@@ -119,7 +119,7 @@ const emit = defineEmits<{
                 @double-click="emit('blockDoubleClick', block)"
                 @open-edit="emit('openEdit', block)"
                 @remove-assignment="block.assignmentId && emit('removeAssignment', block.assignmentId)"
-                @remove-lunch="emit('removeLunch')"
+                @remove-lunch="block.lunchBookingId && emit('removeLunch', block.lunchBookingId)"
             />
         </div>
     </div>

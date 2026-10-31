@@ -1,9 +1,9 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, applyUrlDefaults, validateParameters } from './../../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\Site\LunchBookingController::store
-* @see app/Http/Controllers/Site/LunchBookingController.php:28
+* @see app/Http/Controllers/Site/LunchBookingController.php:26
 * @param tenant - Default: '$site'
-* @route '//{tenant?}.localhost/lunch-booking'
+* @route '//{tenant?}.localhost/lunch-bookings'
 */
 export const store = (args?: { tenant?: string | number } | [tenant: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: store.url(args, options),
@@ -12,14 +12,14 @@ export const store = (args?: { tenant?: string | number } | [tenant: string | nu
 
 store.definition = {
     methods: ["post"],
-    url: '//{tenant?}.localhost/lunch-booking',
+    url: '//{tenant?}.localhost/lunch-bookings',
 } satisfies RouteDefinition<["post"]>
 
 /**
 * @see \App\Http\Controllers\Site\LunchBookingController::store
-* @see app/Http/Controllers/Site/LunchBookingController.php:28
+* @see app/Http/Controllers/Site/LunchBookingController.php:26
 * @param tenant - Default: '$site'
-* @route '//{tenant?}.localhost/lunch-booking'
+* @route '//{tenant?}.localhost/lunch-bookings'
 */
 store.url = (args?: { tenant?: string | number } | [tenant: string | number ] | string | number, options?: RouteQueryOptions) => {
     if (typeof args === 'string' || typeof args === 'number') {
@@ -49,9 +49,9 @@ store.url = (args?: { tenant?: string | number } | [tenant: string | number ] | 
 
 /**
 * @see \App\Http\Controllers\Site\LunchBookingController::store
-* @see app/Http/Controllers/Site/LunchBookingController.php:28
+* @see app/Http/Controllers/Site/LunchBookingController.php:26
 * @param tenant - Default: '$site'
-* @route '//{tenant?}.localhost/lunch-booking'
+* @route '//{tenant?}.localhost/lunch-bookings'
 */
 store.post = (args?: { tenant?: string | number } | [tenant: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     url: store.url(args, options),
@@ -60,9 +60,9 @@ store.post = (args?: { tenant?: string | number } | [tenant: string | number ] |
 
 /**
 * @see \App\Http\Controllers\Site\LunchBookingController::update
-* @see app/Http/Controllers/Site/LunchBookingController.php:45
+* @see app/Http/Controllers/Site/LunchBookingController.php:43
 * @param tenant - Default: '$site'
-* @route '//{tenant?}.localhost/lunch-booking/{lunchBooking}'
+* @route '//{tenant?}.localhost/lunch-bookings/{lunchBooking}'
 */
 export const update = (args: { tenant?: string | number, lunchBooking: string | number } | [tenant: string | number, lunchBooking: string | number ], options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: update.url(args, options),
@@ -70,15 +70,15 @@ export const update = (args: { tenant?: string | number, lunchBooking: string | 
 })
 
 update.definition = {
-    methods: ["put"],
-    url: '//{tenant?}.localhost/lunch-booking/{lunchBooking}',
-} satisfies RouteDefinition<["put"]>
+    methods: ["put","patch"],
+    url: '//{tenant?}.localhost/lunch-bookings/{lunchBooking}',
+} satisfies RouteDefinition<["put","patch"]>
 
 /**
 * @see \App\Http\Controllers\Site\LunchBookingController::update
-* @see app/Http/Controllers/Site/LunchBookingController.php:45
+* @see app/Http/Controllers/Site/LunchBookingController.php:43
 * @param tenant - Default: '$site'
-* @route '//{tenant?}.localhost/lunch-booking/{lunchBooking}'
+* @route '//{tenant?}.localhost/lunch-bookings/{lunchBooking}'
 */
 update.url = (args: { tenant?: string | number, lunchBooking: string | number } | [tenant: string | number, lunchBooking: string | number ], options?: RouteQueryOptions) => {
     if (Array.isArray(args)) {
@@ -107,9 +107,9 @@ update.url = (args: { tenant?: string | number, lunchBooking: string | number } 
 
 /**
 * @see \App\Http\Controllers\Site\LunchBookingController::update
-* @see app/Http/Controllers/Site/LunchBookingController.php:45
+* @see app/Http/Controllers/Site/LunchBookingController.php:43
 * @param tenant - Default: '$site'
-* @route '//{tenant?}.localhost/lunch-booking/{lunchBooking}'
+* @route '//{tenant?}.localhost/lunch-bookings/{lunchBooking}'
 */
 update.put = (args: { tenant?: string | number, lunchBooking: string | number } | [tenant: string | number, lunchBooking: string | number ], options?: RouteQueryOptions): RouteDefinition<'put'> => ({
     url: update.url(args, options),
@@ -117,35 +117,43 @@ update.put = (args: { tenant?: string | number, lunchBooking: string | number } 
 })
 
 /**
-* @see \App\Http\Controllers\Site\LunchBookingController::destroy
-* @see app/Http/Controllers/Site/LunchBookingController.php:70
+* @see \App\Http\Controllers\Site\LunchBookingController::update
+* @see app/Http/Controllers/Site/LunchBookingController.php:43
 * @param tenant - Default: '$site'
-* @route '//{tenant?}.localhost/lunch-booking'
+* @route '//{tenant?}.localhost/lunch-bookings/{lunchBooking}'
 */
-export const destroy = (args?: { tenant?: string | number } | [tenant: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+update.patch = (args: { tenant?: string | number, lunchBooking: string | number } | [tenant: string | number, lunchBooking: string | number ], options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
+    url: update.url(args, options),
+    method: 'patch',
+})
+
+/**
+* @see \App\Http\Controllers\Site\LunchBookingController::destroy
+* @see app/Http/Controllers/Site/LunchBookingController.php:65
+* @param tenant - Default: '$site'
+* @route '//{tenant?}.localhost/lunch-bookings/{lunchBooking}'
+*/
+export const destroy = (args: { tenant?: string | number, lunchBooking: string | number } | [tenant: string | number, lunchBooking: string | number ], options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy.url(args, options),
     method: 'delete',
 })
 
 destroy.definition = {
     methods: ["delete"],
-    url: '//{tenant?}.localhost/lunch-booking',
+    url: '//{tenant?}.localhost/lunch-bookings/{lunchBooking}',
 } satisfies RouteDefinition<["delete"]>
 
 /**
 * @see \App\Http\Controllers\Site\LunchBookingController::destroy
-* @see app/Http/Controllers/Site/LunchBookingController.php:70
+* @see app/Http/Controllers/Site/LunchBookingController.php:65
 * @param tenant - Default: '$site'
-* @route '//{tenant?}.localhost/lunch-booking'
+* @route '//{tenant?}.localhost/lunch-bookings/{lunchBooking}'
 */
-destroy.url = (args?: { tenant?: string | number } | [tenant: string | number ] | string | number, options?: RouteQueryOptions) => {
-    if (typeof args === 'string' || typeof args === 'number') {
-        args = { tenant: args }
-    }
-
+destroy.url = (args: { tenant?: string | number, lunchBooking: string | number } | [tenant: string | number, lunchBooking: string | number ], options?: RouteQueryOptions) => {
     if (Array.isArray(args)) {
         args = {
             tenant: args[0],
+            lunchBooking: args[1],
         }
     }
 
@@ -156,21 +164,23 @@ destroy.url = (args?: { tenant?: string | number } | [tenant: string | number ] 
     ])
 
     const parsedArgs = {
-        tenant: args?.tenant ?? '$site',
+        tenant: args.tenant ?? '$site',
+        lunchBooking: args.lunchBooking,
     }
 
     return destroy.definition.url
             .replace('{tenant?}', parsedArgs.tenant?.toString() ?? '')
+            .replace('{lunchBooking}', parsedArgs.lunchBooking.toString())
             .replace(/\/+$/, '') + queryParams(options)
 }
 
 /**
 * @see \App\Http\Controllers\Site\LunchBookingController::destroy
-* @see app/Http/Controllers/Site/LunchBookingController.php:70
+* @see app/Http/Controllers/Site/LunchBookingController.php:65
 * @param tenant - Default: '$site'
-* @route '//{tenant?}.localhost/lunch-booking'
+* @route '//{tenant?}.localhost/lunch-bookings/{lunchBooking}'
 */
-destroy.delete = (args?: { tenant?: string | number } | [tenant: string | number ] | string | number, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
+destroy.delete = (args: { tenant?: string | number, lunchBooking: string | number } | [tenant: string | number, lunchBooking: string | number ], options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
     url: destroy.url(args, options),
     method: 'delete',
 })
