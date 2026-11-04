@@ -89,20 +89,20 @@ const submit = () => {
 
         <div class="space-y-6">
             <div class="card p-6">
-                <h2 class="text-lg font-semibold text-slate-100">{{ siteName }}</h2>
-                <p class="text-sm text-slate-400 mt-1">Site settings and default team configuration.</p>
+                <h2 class="text-lg font-semibold tracking-tight text-white">{{ siteName }}</h2>
+                <p class="mt-1 text-sm text-slate-400">Site settings and default team configuration.</p>
             </div>
 
-            <div class="card p-6 space-y-4">
+            <div class="card space-y-4 p-6">
                 <div>
-                    <h2 class="text-lg font-semibold text-slate-100">Working hour presets</h2>
-                    <p class="text-sm text-slate-400">Patterns members can choose during onboarding.</p>
+                    <h2 class="text-lg font-semibold tracking-tight text-white">Working hour presets</h2>
+                    <p class="mt-0.5 text-sm text-slate-400">Patterns members can choose during onboarding.</p>
                 </div>
 
                 <div
                     v-for="(preset, index) in presets"
                     :key="index"
-                    class="grid grid-cols-1 sm:grid-cols-4 gap-3 p-4 rounded-lg bg-slate-900/50 border border-slate-800"
+                    class="grid grid-cols-1 gap-3 border border-white/10 bg-dark-950/40 p-4 sm:grid-cols-4"
                 >
                     <input v-model="preset.name" type="text" class="input" placeholder="Name" required>
                     <input v-model="preset.startTime" type="time" class="input" required>
@@ -122,31 +122,50 @@ const submit = () => {
                 </Button>
             </div>
 
-            <div class="card p-6 space-y-4">
-                <h2 class="text-lg font-semibold text-slate-100">Scheduling</h2>
+            <div class="card space-y-4 p-6">
+                <h2 class="text-lg font-semibold tracking-tight text-white">Scheduling</h2>
                 <div>
-                    <label class="block text-sm font-medium text-slate-300 mb-2">Default task</label>
-                    <select v-model="defaultTask" class="input">
+                    <label class="mb-2 block text-sm font-medium text-slate-300">Default task</label>
+                    <select
+                        v-model="defaultTask"
+                        class="input"
+                    >
                         <option value="none">None</option>
-                        <option v-for="task in taskOptions" :key="task" :value="task">
+                        <option
+                            v-for="task in taskOptions"
+                            :key="task"
+                            :value="task"
+                        >
                             {{ task }}
                         </option>
                     </select>
                 </div>
                 <label class="flex items-center gap-2 text-sm text-slate-300">
-                    <input v-model="timeOffAutoApprove" type="checkbox" class="rounded border-slate-600 bg-slate-800 text-indigo-500">
+                    <input
+                        v-model="timeOffAutoApprove"
+                        type="checkbox"
+                        class="rounded border-white/20 bg-dark-900 text-primary-500 focus:ring-primary-400/40"
+                    >
                     Auto-approve time off (team default)
                 </label>
             </div>
 
-            <div class="card p-6 space-y-4">
-                <h2 class="text-lg font-semibold text-slate-100">Authentication</h2>
+            <div class="card space-y-4 p-6">
+                <h2 class="text-lg font-semibold tracking-tight text-white">Authentication</h2>
                 <label class="flex items-center gap-2 text-sm text-slate-300">
-                    <input v-model="registerEnabled" type="checkbox" class="rounded border-slate-600 bg-slate-800 text-indigo-500">
+                    <input
+                        v-model="registerEnabled"
+                        type="checkbox"
+                        class="rounded border-white/20 bg-dark-900 text-primary-500 focus:ring-primary-400/40"
+                    >
                     Allow user registration
                 </label>
                 <label class="flex items-center gap-2 text-sm text-slate-300">
-                    <input v-model="resetPasswordEnabled" type="checkbox" class="rounded border-slate-600 bg-slate-800 text-indigo-500">
+                    <input
+                        v-model="resetPasswordEnabled"
+                        type="checkbox"
+                        class="rounded border-white/20 bg-dark-900 text-primary-500 focus:ring-primary-400/40"
+                    >
                     Allow password reset
                 </label>
             </div>

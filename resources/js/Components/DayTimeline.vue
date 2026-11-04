@@ -71,12 +71,12 @@ const submitting = ref(false);
 
 type BlockTypeStyle = { bg: string; border: string };
 
-const defaultTypeStyle: BlockTypeStyle = { bg: 'bg-indigo-500/80', border: 'border-indigo-300' };
+const defaultTypeStyle: BlockTypeStyle = { bg: 'bg-primary-500/80', border: 'border-primary-300' };
 
 const typeStyles: Record<string, BlockTypeStyle> = {
-    task_assignment: { bg: 'bg-indigo-500/80', border: 'border-indigo-300' },
+    task_assignment: { bg: 'bg-primary-500/80', border: 'border-primary-300' },
     time_off_request: { bg: 'bg-amber-500/80', border: 'border-amber-300' },
-    lunch_booking: { bg: 'bg-emerald-500/80', border: 'border-emerald-300' },
+    lunch_booking: { bg: 'bg-sky-500/80', border: 'border-sky-300' },
 };
 
 const workingDayStart = computed(() => timeToMinutes(props.workingHours.start));
@@ -154,7 +154,7 @@ const addDraftBorderClass = computed((): string => {
     }
 
     if (addDraft.value.mode === 'lunch') {
-        return 'border-emerald-500/40';
+        return 'border-sky-500/40';
     }
 
     return 'border-primary-500/40';
@@ -774,34 +774,37 @@ const confirmEdit = (): void => {
 </script>
 
 <template>
-    <div class="card overflow-hidden flex flex-col w-full">
-        <div class="px-4 py-3 border-b border-white/5 shrink-0 bg-white/[0.02] space-y-3">
-            <div class="flex items-center justify-between gap-4 flex-wrap">
-                <div class="flex items-center gap-2 min-w-0">
+    <div class="flex w-full flex-col overflow-hidden border border-white/10 bg-dark-950/50">
+        <div class="shrink-0 space-y-3 border-b border-white/10 px-4 py-3 sm:px-5">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+                <div class="flex min-w-0 items-center gap-1 sm:gap-2">
                     <button
                         type="button"
-                        class="p-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/60 transition-colors disabled:opacity-40"
+                        class="rounded-md p-2 text-slate-300 transition-colors hover:bg-white/5 hover:text-white disabled:opacity-40"
                         :disabled="loading"
                         aria-label="Previous day"
                         @click="navigateDay(-1)"
                     >
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                         </svg>
                     </button>
 
-                    <Popover v-slot="{ close }" class="relative">
+                    <Popover
+                        v-slot="{ close }"
+                        class="relative"
+                    >
                         <PopoverButton
-                            class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium text-slate-100 hover:bg-slate-800/60 transition-colors disabled:opacity-40"
+                            class="flex items-center gap-2 rounded-md px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-white/5 disabled:opacity-40"
                             :disabled="loading"
                         >
                             <span class="truncate">{{ formattedSelectedDate }}</span>
-                            <svg class="w-4 h-4 shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="h-4 w-4 shrink-0 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                             </svg>
                         </PopoverButton>
-                        <PopoverPanel class="absolute left-0 z-30 mt-2 rounded-xl bg-slate-800 border border-slate-700 shadow-lg p-3">
-                            <label class="block text-xs text-slate-400 mb-2">Jump to date</label>
+                        <PopoverPanel class="absolute left-0 z-30 mt-2 border border-white/10 bg-dark-900 p-3 shadow-lg shadow-black/30">
+                            <label class="mb-2 block text-xs text-slate-400">Jump to date</label>
                             <input
                                 type="date"
                                 :value="selectedDate"
@@ -813,12 +816,12 @@ const confirmEdit = (): void => {
 
                     <button
                         type="button"
-                        class="p-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/60 transition-colors disabled:opacity-40"
+                        class="rounded-md p-2 text-slate-300 transition-colors hover:bg-white/5 hover:text-white disabled:opacity-40"
                         :disabled="loading"
                         aria-label="Next day"
                         @click="navigateDay(1)"
                     >
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                         </svg>
                     </button>
@@ -826,7 +829,7 @@ const confirmEdit = (): void => {
                     <button
                         v-if="!isToday"
                         type="button"
-                        class="text-xs px-2 py-1 rounded-lg text-primary-400 hover:text-primary-300 hover:bg-slate-800/60 transition-colors disabled:opacity-40"
+                        class="rounded-md px-2 py-1 text-xs text-primary-400 transition-colors hover:bg-white/5 hover:text-primary-300 disabled:opacity-40"
                         :disabled="loading"
                         @click="goToToday"
                     >
@@ -838,7 +841,7 @@ const confirmEdit = (): void => {
                     <button
                         v-if="canAddLunch"
                         type="button"
-                        class="btn text-sm px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white border-0"
+                        class="btn btn-secondary text-sm px-3 py-1.5 border-sky-500/40 text-sky-300 hover:border-sky-400/60 hover:bg-sky-500/10 hover:text-sky-200"
                         :disabled="submitting"
                         @click="openLunchDraft()"
                     >
@@ -854,7 +857,7 @@ const confirmEdit = (): void => {
                     </button>
                     <button
                         type="button"
-                        class="btn text-sm px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white border-0"
+                        class="btn btn-secondary border-amber-500/40 text-sm text-amber-300 hover:border-amber-400/60 hover:bg-amber-500/10 hover:text-amber-200"
                         :disabled="submitting"
                         @click="openAddDraft(undefined, undefined, undefined, 'time_off')"
                     >
@@ -890,7 +893,7 @@ const confirmEdit = (): void => {
 
             <div
                 v-if="editDraft"
-                class="mt-3 flex flex-wrap items-end gap-3 rounded-lg bg-slate-900/70 border border-emerald-500/40 p-3"
+                class="mt-3 flex flex-wrap items-end gap-3 border border-primary-500/40 bg-dark-950/60 p-3"
             >
                 <p class="w-full text-xs font-medium text-slate-300">
                     Edit {{ blockLabel(editDraft.block) }} — exact times
@@ -912,7 +915,7 @@ const confirmEdit = (): void => {
                             v-for="name in taskSuggestions"
                             :key="`edit-suggest-${name}`"
                             type="button"
-                            class="text-[10px] px-2 py-0.5 rounded-full border border-slate-600 text-slate-400 hover:border-primary-500/50 hover:text-primary-300"
+                            class="rounded-md border border-white/15 px-2 py-0.5 text-[10px] text-slate-400 transition-colors hover:border-primary-500/50 hover:text-primary-300"
                             @click="applyTaskSuggestion(editDraft, name)"
                         >
                             {{ name }}
@@ -920,40 +923,73 @@ const confirmEdit = (): void => {
                     </div>
                 </div>
                 <div>
-                    <label class="block text-xs text-slate-400 mb-1">Start</label>
-                    <input v-model="editDraft.startTime" type="time" step="60" class="input text-sm py-1.5">
+                    <label class="mb-1 block text-xs text-slate-400">Start</label>
+                    <input
+                        v-model="editDraft.startTime"
+                        type="time"
+                        step="60"
+                        class="input py-1.5 text-sm"
+                    >
                 </div>
                 <div>
-                    <label class="block text-xs text-slate-400 mb-1">End</label>
-                    <input v-model="editDraft.endTime" type="time" step="60" class="input text-sm py-1.5">
+                    <label class="mb-1 block text-xs text-slate-400">End</label>
+                    <input
+                        v-model="editDraft.endTime"
+                        type="time"
+                        step="60"
+                        class="input py-1.5 text-sm"
+                    >
                 </div>
                 <div class="flex gap-2">
-                    <button type="button" class="btn btn-primary text-sm px-3 py-1.5" :disabled="submitting" @click="confirmEdit">
+                    <button
+                        type="button"
+                        class="btn btn-primary px-3 py-1.5 text-sm"
+                        :disabled="submitting"
+                        @click="confirmEdit"
+                    >
                         Save
                     </button>
-                    <button type="button" class="btn btn-ghost text-sm px-3 py-1.5" @click="editDraft = null">
+                    <button
+                        type="button"
+                        class="btn btn-ghost px-3 py-1.5 text-sm"
+                        @click="editDraft = null"
+                    >
                         Cancel
                     </button>
                 </div>
             </div>
         </div>
 
-        <div class="p-4 flex-1 relative min-h-[200px]">
+        <div class="relative min-h-[240px] flex-1 px-4 py-4 sm:px-5">
             <LoadingSpinner v-if="loading" />
 
             <template v-else>
-                <div class="flex text-xs text-slate-500 mb-2 pl-24 pr-1">
-                    <div class="flex-1 flex justify-between">
-                        <span v-for="marker in hourMarkers" :key="marker">{{ marker }}</span>
+                <div class="mb-2 flex pl-24 pr-1 font-mono text-[10px] tracking-wider text-slate-500">
+                    <div class="flex flex-1 justify-between">
+                        <span
+                            v-for="marker in hourMarkers"
+                            :key="marker"
+                        >{{ marker }}</span>
                     </div>
                 </div>
 
-                <div v-if="scheduleRows.length === 0" class="text-center text-slate-400 py-12 text-sm">
-                    <p>No one scheduled for this day.</p>
-                    <p v-if="canEdit" class="text-xs text-slate-500 mt-2">Click a time slot on your row to add a task or request time off.</p>
+                <div
+                    v-if="scheduleRows.length === 0"
+                    class="border border-dashed border-white/10 px-6 py-14 text-center"
+                >
+                    <p class="text-sm font-medium text-slate-300">Nobody on the schedule for this day</p>
+                    <p
+                        v-if="canEdit"
+                        class="mt-2 text-xs leading-relaxed text-slate-500"
+                    >
+                        Jump to today, or add yourself to a team with “On schedule” enabled.
+                    </p>
                 </div>
 
-                <div v-else class="space-y-2">
+                <div
+                    v-else
+                    class="space-y-3"
+                >
                     <TimelineTrack
                         v-for="user in scheduleRows"
                         :key="user.userId"
@@ -982,10 +1018,10 @@ const confirmEdit = (): void => {
                     />
                 </div>
 
-                <div class="flex gap-4 mt-4 justify-center text-xs text-slate-400">
-                    <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-indigo-500/70"></span> Task</span>
-                    <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-amber-500/70"></span> Time off</span>
-                    <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-emerald-500/70"></span> Lunch</span>
+                <div class="mt-5 flex justify-center gap-5 text-xs text-slate-500">
+                    <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-sm bg-primary-500/80" /> Task</span>
+                    <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-sm bg-amber-500/80" /> Time off</span>
+                    <span class="flex items-center gap-1.5"><span class="h-2.5 w-2.5 rounded-sm bg-sky-500/80" /> Lunch</span>
                 </div>
             </template>
         </div>

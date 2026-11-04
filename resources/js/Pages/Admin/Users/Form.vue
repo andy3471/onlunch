@@ -130,9 +130,9 @@ const destroy = () => {
     <AppLayout>
         <AdminNav />
 
-        <div class="max-w-2xl mx-auto card p-6 space-y-6">
+        <div class="card mx-auto max-w-2xl space-y-6 p-6">
             <div>
-                <h2 class="text-lg font-semibold text-slate-100">
+                <h2 class="text-lg font-semibold tracking-tight text-white">
                     {{ isEditing ? 'Edit user' : 'Add user' }}
                 </h2>
             </div>
@@ -140,72 +140,93 @@ const destroy = () => {
             <div class="space-y-4">
                 <template v-if="isEditing">
                     <div>
-                        <span class="block text-sm font-medium text-slate-300 mb-2">Name</span>
+                        <span class="mb-2 block text-sm font-medium text-slate-300">Name</span>
                         <p class="input opacity-75">{{ user?.name }}</p>
                     </div>
 
                     <div>
-                        <span class="block text-sm font-medium text-slate-300 mb-2">Email</span>
+                        <span class="mb-2 block text-sm font-medium text-slate-300">Email</span>
                         <p class="input opacity-75">{{ user?.email }}</p>
                     </div>
                 </template>
 
                 <template v-else>
                     <div>
-                        <label class="block text-sm font-medium text-slate-300 mb-2">Name</label>
-                        <input v-model="name" type="text" class="input" required>
+                        <label class="mb-2 block text-sm font-medium text-slate-300">Name</label>
+                        <input
+                            v-model="name"
+                            type="text"
+                            class="input"
+                            required
+                        >
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-slate-300 mb-2">Email</label>
-                        <input v-model="email" type="email" class="input" required>
+                        <label class="mb-2 block text-sm font-medium text-slate-300">Email</label>
+                        <input
+                            v-model="email"
+                            type="email"
+                            class="input"
+                            required
+                        >
                     </div>
                 </template>
 
                 <label class="flex items-center gap-2 text-sm text-slate-300">
-                    <input v-model="isAdmin" type="checkbox" class="rounded border-slate-600 bg-slate-800 text-indigo-500">
+                    <input
+                        v-model="isAdmin"
+                        type="checkbox"
+                        class="rounded border-white/20 bg-dark-900 text-primary-500 focus:ring-primary-400/40"
+                    >
                     Site admin
                 </label>
 
                 <div>
-                    <label class="block text-sm font-medium text-slate-300 mb-2">Working hours</label>
+                    <label class="mb-2 block text-sm font-medium text-slate-300">Working hours</label>
                     <select
                         :value="workingHourPresetId ?? ''"
                         class="input"
                         @change="workingHourPresetId = ($event.target as HTMLSelectElement).value || ''"
                     >
                         <option value="">None — user completes onboarding</option>
-                        <option v-for="preset in presets" :key="preset.id" :value="preset.id">
+                        <option
+                            v-for="preset in presets"
+                            :key="preset.id"
+                            :value="preset.id"
+                        >
                             {{ preset.label }}
                         </option>
                     </select>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-slate-300 mb-2">Time off approval</label>
-                    <select v-model="timeOffApproval" class="input">
+                    <label class="mb-2 block text-sm font-medium text-slate-300">Time off approval</label>
+                    <select
+                        v-model="timeOffApproval"
+                        class="input"
+                    >
                         <option value="site_default">Use team default</option>
                         <option value="required">Always require approval</option>
                         <option value="auto">Always auto-approve</option>
                     </select>
-                    <p class="text-xs text-slate-500 mt-1">Applies across the site. Teams still control minimum staffing rules.</p>
+                    <p class="mt-1 text-xs text-slate-500">Applies across the site. Teams still control minimum staffing rules.</p>
                 </div>
 
                 <div class="space-y-3">
                     <div>
                         <h3 class="text-sm font-medium text-slate-300">Teams</h3>
-                        <p class="text-xs text-slate-500 mt-1">Team membership controls rosters, minimum staffing, who can see this person’s time, and who can approve their time off.</p>
+                        <p class="mt-1 text-xs text-slate-500">Team membership controls rosters, minimum staffing, who can see this person’s time, and who can approve their time off.</p>
                     </div>
 
                     <div
                         v-for="team in teams"
                         :key="team.id"
-                        class="rounded-lg border border-slate-800 bg-slate-900/50 p-4 space-y-3"
+                        class="space-y-3 border border-white/10 bg-dark-950/40 p-4"
                     >
                         <label class="flex items-center gap-2 text-sm font-medium text-slate-200">
                             <input
                                 type="checkbox"
-                                class="rounded border-slate-600 bg-slate-800 text-indigo-500"
+                                class="rounded border-white/20 bg-dark-900 text-primary-500 focus:ring-primary-400/40"
                                 :checked="membershipForTeam(team.id)?.isMember ?? false"
                                 @change="toggleMembership(team.id, ($event.target as HTMLInputElement).checked)"
                             >
@@ -219,7 +240,7 @@ const destroy = () => {
                             <input
                                 v-model="membershipForTeam(team.id)!.isScheduled"
                                 type="checkbox"
-                                class="rounded border-slate-600 bg-slate-800 text-indigo-500"
+                                class="rounded border-white/20 bg-dark-900 text-primary-500 focus:ring-primary-400/40"
                             >
                             On schedule
                         </label>
@@ -229,7 +250,7 @@ const destroy = () => {
                             class="grid gap-3 sm:grid-cols-2"
                         >
                             <div>
-                                <label class="block text-xs font-medium text-slate-400 mb-1.5">Who can see their time</label>
+                                <label class="mb-1.5 block text-xs font-medium text-slate-400">Who can see their time</label>
                                 <select
                                     v-model="membershipForTeam(team.id)!.scheduleVisibility"
                                     class="input text-sm"
@@ -241,11 +262,11 @@ const destroy = () => {
                                 </select>
                             </div>
 
-                            <label class="flex items-end gap-2 text-sm text-slate-300 pb-2">
+                            <label class="flex items-end gap-2 pb-2 text-sm text-slate-300">
                                 <input
                                     v-model="membershipForTeam(team.id)!.isTimeOffApprover"
                                     type="checkbox"
-                                    class="rounded border-slate-600 bg-slate-800 text-indigo-500"
+                                    class="rounded border-white/20 bg-dark-900 text-primary-500 focus:ring-primary-400/40"
                                 >
                                 Can approve time off for this team
                             </label>
@@ -255,33 +276,61 @@ const destroy = () => {
 
                 <template v-if="!isEditing">
                     <div>
-                        <label class="block text-sm font-medium text-slate-300 mb-2">Password</label>
-                        <input v-model="password" type="password" class="input" required>
+                        <label class="mb-2 block text-sm font-medium text-slate-300">Password</label>
+                        <input
+                            v-model="password"
+                            type="password"
+                            class="input"
+                            required
+                        >
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-slate-300 mb-2">Confirm password</label>
-                        <input v-model="passwordConfirmation" type="password" class="input" required>
+                        <label class="mb-2 block text-sm font-medium text-slate-300">Confirm password</label>
+                        <input
+                            v-model="passwordConfirmation"
+                            type="password"
+                            class="input"
+                            required
+                        >
                     </div>
                 </template>
             </div>
 
             <div class="flex items-center gap-3">
-                <Button class="flex-1" :disabled="submitting" @click="submit">
+                <Button
+                    class="flex-1"
+                    :disabled="submitting"
+                    @click="submit"
+                >
                     {{ isEditing ? 'Save changes' : 'Create user' }}
                 </Button>
-                <Link :href="usersIndex.url()" class="text-sm text-slate-400 hover:text-slate-300">
+                <Link
+                    :href="usersIndex.url()"
+                    class="text-sm text-slate-400 hover:text-slate-200"
+                >
                     Cancel
                 </Link>
             </div>
 
-            <div v-if="isEditing" class="pt-4 border-t border-slate-800">
-                <Button variant="danger" size="sm" @click="destroy">
+            <div
+                v-if="isEditing"
+                class="border-t border-white/10 pt-4"
+            >
+                <Button
+                    variant="danger"
+                    size="sm"
+                    @click="destroy"
+                >
                     Remove user
                 </Button>
             </div>
         </div>
 
-        <Toast v-if="toast" :type="toast.type" :message="toast.message" />
+        <Toast
+            v-if="toast"
+            :type="toast.type"
+            :message="toast.message"
+        />
     </AppLayout>
 </template>

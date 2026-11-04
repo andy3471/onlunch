@@ -8,12 +8,12 @@ defineProps<{
 
 <template>
     <AuthLayout>
-        <div class="max-w-md mx-auto">
+        <div class="mx-auto max-w-md">
             <div class="card">
-                <div class="px-6 py-4 border-b border-slate-700/50">
-                    <h2 class="text-xl font-semibold text-white text-center">
+                <div class="border-b border-white/10 px-6 py-4">
+                    <h1 class="text-center text-lg font-semibold tracking-tight text-white">
                         {{ title }}
-                    </h2>
+                    </h1>
                 </div>
                 <div class="p-6">
                     <slot />

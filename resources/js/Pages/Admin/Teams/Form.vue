@@ -58,19 +58,24 @@ const submit = () => {
     <AppLayout>
         <AdminNav />
 
-        <div class="max-w-lg mx-auto card p-6 space-y-6">
-            <h2 class="text-lg font-semibold text-slate-100">
+        <div class="card mx-auto max-w-lg space-y-6 p-6">
+            <h2 class="text-lg font-semibold tracking-tight text-white">
                 {{ isEditing ? 'Edit team' : 'Create team' }}
             </h2>
 
             <div class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-slate-300 mb-2">Name</label>
-                    <input v-model="name" type="text" class="input" required>
+                    <label class="mb-2 block text-sm font-medium text-slate-300">Name</label>
+                    <input
+                        v-model="name"
+                        type="text"
+                        class="input"
+                        required
+                    >
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-slate-300 mb-2">Minimum staff available</label>
+                    <label class="mb-2 block text-sm font-medium text-slate-300">Minimum staff available</label>
                     <input
                         v-model="minimumAvailableStaff"
                         type="number"
@@ -78,17 +83,23 @@ const submit = () => {
                         class="input"
                         placeholder="Leave empty to disable"
                     >
-                    <p class="text-xs text-slate-500 mt-1">
+                    <p class="mt-1 text-xs text-slate-500">
                         Prevents too many people booking lunch or time off at once when this would drop available staff below this number.
                     </p>
                 </div>
             </div>
 
             <div class="flex items-center gap-3">
-                <Button :disabled="submitting" @click="submit">
+                <Button
+                    :disabled="submitting"
+                    @click="submit"
+                >
                     {{ isEditing ? 'Save changes' : 'Create team' }}
                 </Button>
-                <Link :href="teamsIndex.url()" class="text-sm text-slate-400 hover:text-slate-300">
+                <Link
+                    :href="teamsIndex.url()"
+                    class="text-sm text-slate-400 hover:text-slate-200"
+                >
                     Cancel
                 </Link>
             </div>

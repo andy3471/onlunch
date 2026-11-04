@@ -44,21 +44,31 @@ const submit = () => {
                     </p>
                 </div>
 
-                <div class="space-y-3">
+                <div
+                    v-if="presets.length === 0"
+                    class="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100/90"
+                >
+                    No working-hour presets are set up for this site yet. Ask an admin to add them in Manage → Site settings.
+                </div>
+
+                <div
+                    v-else
+                    class="space-y-3"
+                >
                     <label
                         v-for="preset in presets"
                         :key="preset.id"
-                        class="flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-colors"
+                        class="flex cursor-pointer items-center gap-3 rounded-lg border p-4 transition-colors"
                         :class="selectedPresetId === preset.id
                             ? 'border-primary-500 bg-primary-500/10'
-                            : 'border-slate-700 bg-slate-900/40 hover:border-slate-600'"
+                            : 'border-white/10 bg-dark-900/40 hover:border-white/20'"
                     >
                         <input
                             v-model="selectedPresetId"
                             type="radio"
                             :value="preset.id"
                             class="text-primary-500 focus:ring-primary-500"
-                        />
+                        >
                         <div>
                             <div class="font-medium text-slate-100">{{ preset.name }}</div>
                             <div class="text-sm text-slate-400">{{ preset.startTime }} – {{ preset.endTime }}</div>
@@ -68,7 +78,7 @@ const submit = () => {
 
                 <Button
                     class="w-full"
-                    :disabled="!selectedPresetId || submitting"
+                    :disabled="!selectedPresetId || submitting || presets.length === 0"
                     @click="submit"
                 >
                     Continue

@@ -54,8 +54,8 @@ const submit = (): void => {
             <div class="flex items-center gap-2">
                 <Switch
                     v-model="form.remember"
-                    :class="form.remember ? 'bg-primary-600' : 'bg-slate-700'"
-                    class="relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-slate-800"
+                    :class="form.remember ? 'bg-primary-600' : 'bg-white/15'"
+                    class="relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-400"
                 >
                     <span
                         :class="form.remember ? 'translate-x-4' : 'translate-x-0'"

@@ -37,109 +37,147 @@ function handleSubmit(): void {
         onFinish: () => processing.value = false,
     });
 }
-
-const inputClasses = 'w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-hidden focus:ring-2 focus:ring-primary-500 focus:border-transparent';
 </script>
 
 <template>
     <BrochureLayout>
-        <div class="py-16 sm:py-24">
-            <div class="max-w-md mx-auto px-4 sm:px-6">
-                <div class="text-center mb-8">
-                    <h1 class="text-3xl font-bold text-white">Create Your Team</h1>
-                    <p class="mt-2 text-slate-400">Set up your team and start managing flexible working with FlexRota.</p>
+        <div class="px-4 py-14 sm:px-6 sm:py-20">
+            <div class="mx-auto max-w-md">
+                <div class="mb-8">
+                    <h1 class="text-2xl font-semibold tracking-tight text-white sm:text-3xl">
+                        Create your team
+                    </h1>
+                    <p class="mt-2 text-sm leading-relaxed text-slate-400">
+                        Set up FlexRota for your team and start scheduling the day.
+                    </p>
                 </div>
 
-                <form @submit.prevent="handleSubmit" class="bg-slate-800/60 rounded-xl border border-slate-700/50 p-6">
-                    <h2 class="text-lg font-semibold text-white mb-4">Team Details</h2>
+                <form
+                    class="card space-y-8 p-6"
+                    @submit.prevent="handleSubmit"
+                >
+                    <fieldset class="space-y-4">
+                        <legend class="text-sm font-semibold text-white">Team</legend>
 
-                    <div class="space-y-4 mb-8">
                         <div>
-                            <label for="team_name" class="block text-sm font-medium text-slate-300 mb-1">Team Name</label>
+                            <label
+                                for="team_name"
+                                class="mb-1 block text-sm font-medium text-slate-300"
+                            >Team name</label>
                             <input
                                 id="team_name"
                                 v-model="form.team_name"
-                                @input="onTeamNameInput"
                                 type="text"
                                 required
-                                :class="inputClasses"
+                                class="input"
                                 placeholder="Acme Corp"
-                            />
-                            <p v-if="errors['team_name']" class="mt-1 text-sm text-red-400">{{ errors['team_name'] }}</p>
+                                @input="onTeamNameInput"
+                            >
+                            <p
+                                v-if="errors['team_name']"
+                                class="mt-1 text-sm text-red-400"
+                            >{{ errors['team_name'] }}</p>
                         </div>
 
                         <div>
-                            <label for="team_slug" class="block text-sm font-medium text-slate-300 mb-1">Team URL</label>
-                            <div class="flex items-center gap-0">
+                            <label
+                                for="team_slug"
+                                class="mb-1 block text-sm font-medium text-slate-300"
+                            >Team URL</label>
+                            <div class="flex items-center">
                                 <input
                                     id="team_slug"
                                     v-model="form.team_slug"
                                     type="text"
                                     required
                                     pattern="[a-z0-9\-]+"
-                                    class="flex-1 px-3 py-2 bg-slate-900 border border-slate-700 rounded-l-xl text-white placeholder-slate-500 focus:outline-hidden focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                                    class="input rounded-r-none"
                                     placeholder="acme-corp"
-                                />
-                                <span class="px-3 py-2 bg-slate-700 border border-slate-700 rounded-r-xl text-slate-400 text-sm whitespace-nowrap">
+                                >
+                                <span class="rounded-r-lg border border-l-0 border-white/10 bg-white/5 px-3 py-2 text-sm whitespace-nowrap text-slate-400">
                                     .onlunch.app
                                 </span>
                             </div>
-                            <p v-if="errors['team_slug']" class="mt-1 text-sm text-red-400">{{ errors['team_slug'] }}</p>
+                            <p
+                                v-if="errors['team_slug']"
+                                class="mt-1 text-sm text-red-400"
+                            >{{ errors['team_slug'] }}</p>
                         </div>
-                    </div>
+                    </fieldset>
 
-                    <h2 class="text-lg font-semibold text-white mb-4">Your Account</h2>
+                    <fieldset class="space-y-4">
+                        <legend class="text-sm font-semibold text-white">Your account</legend>
 
-                    <div class="space-y-4 mb-8">
                         <div>
-                            <label for="name" class="block text-sm font-medium text-slate-300 mb-1">Name</label>
+                            <label
+                                for="name"
+                                class="mb-1 block text-sm font-medium text-slate-300"
+                            >Name</label>
                             <input
                                 id="name"
                                 v-model="form.name"
                                 type="text"
                                 required
-                                :class="inputClasses"
+                                class="input"
                                 placeholder="Jane Smith"
-                            />
-                            <p v-if="errors['name']" class="mt-1 text-sm text-red-400">{{ errors['name'] }}</p>
+                            >
+                            <p
+                                v-if="errors['name']"
+                                class="mt-1 text-sm text-red-400"
+                            >{{ errors['name'] }}</p>
                         </div>
 
                         <div>
-                            <label for="email" class="block text-sm font-medium text-slate-300 mb-1">Email</label>
+                            <label
+                                for="email"
+                                class="mb-1 block text-sm font-medium text-slate-300"
+                            >Email</label>
                             <input
                                 id="email"
                                 v-model="form.email"
                                 type="email"
                                 required
-                                :class="inputClasses"
+                                class="input"
                                 placeholder="jane@acme.com"
-                            />
-                            <p v-if="errors['email']" class="mt-1 text-sm text-red-400">{{ errors['email'] }}</p>
+                            >
+                            <p
+                                v-if="errors['email']"
+                                class="mt-1 text-sm text-red-400"
+                            >{{ errors['email'] }}</p>
                         </div>
 
                         <div>
-                            <label for="password" class="block text-sm font-medium text-slate-300 mb-1">Password</label>
+                            <label
+                                for="password"
+                                class="mb-1 block text-sm font-medium text-slate-300"
+                            >Password</label>
                             <input
                                 id="password"
                                 v-model="form.password"
                                 type="password"
                                 required
-                                :class="inputClasses"
-                            />
-                            <p v-if="errors['password']" class="mt-1 text-sm text-red-400">{{ errors['password'] }}</p>
+                                class="input"
+                            >
+                            <p
+                                v-if="errors['password']"
+                                class="mt-1 text-sm text-red-400"
+                            >{{ errors['password'] }}</p>
                         </div>
 
                         <div>
-                            <label for="password_confirmation" class="block text-sm font-medium text-slate-300 mb-1">Confirm Password</label>
+                            <label
+                                for="password_confirmation"
+                                class="mb-1 block text-sm font-medium text-slate-300"
+                            >Confirm password</label>
                             <input
                                 id="password_confirmation"
                                 v-model="form.password_confirmation"
                                 type="password"
                                 required
-                                :class="inputClasses"
-                            />
+                                class="input"
+                            >
                         </div>
-                    </div>
+                    </fieldset>
 
                     <Button
                         type="submit"
@@ -148,7 +186,7 @@ const inputClasses = 'w-full px-3 py-2 bg-slate-900 border border-slate-700 roun
                         :disabled="processing"
                         class="w-full"
                     >
-                        Create Team
+                        Create team
                     </Button>
                 </form>
             </div>

@@ -38,14 +38,19 @@ const isActive = (path: string): boolean => currentPath.value === path || curren
 
 <template>
     <div class="mb-6">
-        <h1 class="text-lg font-semibold text-white mb-3">{{ isSiteAdmin ? 'Manage' : 'Time off' }}</h1>
-        <nav class="flex flex-wrap gap-1 p-1 rounded-xl bg-white/5 border border-white/5">
+        <h1 class="mb-3 text-lg font-semibold tracking-tight text-white">
+            {{ isSiteAdmin ? 'Manage' : 'Time off' }}
+        </h1>
+        <nav
+            class="flex flex-wrap gap-0.5 border border-white/10 bg-dark-950/50 p-1"
+            aria-label="Manage"
+        >
             <Link
                 v-for="link in links"
                 :key="link.path"
                 :href="link.href"
-                class="px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
-                :class="isActive(link.path) ? 'nav-link-active' : 'nav-link'"
+                class="nav-chip"
+                :class="{ 'nav-chip-active': isActive(link.path) }"
             >
                 {{ link.label }}
             </Link>

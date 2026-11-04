@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { CSSProperties } from 'vue';
 import type { TimeBlockData } from '@/Types/generated';
 import type { DragMode } from '@/Composables/useTimelineDrag';
 import { minutesToTime } from '@/Composables/useScheduleTime';
@@ -13,6 +14,7 @@ interface BlockStyle {
 interface Props {
     block: TimeBlockData;
     blockStyle: BlockStyle;
+    laneStyle?: CSSProperties;
     startMinutes: number;
     endMinutes: number;
     label: string;
@@ -20,7 +22,12 @@ interface Props {
     showEditHint: boolean;
 }
 
-defineProps<Props>();
+withDefaults(defineProps<Props>(), {
+    laneStyle: () => ({
+        top: '0.25rem',
+        bottom: '0.25rem',
+    }),
+});
 
 const emit = defineEmits<{
     pointerDown: [event: PointerEvent, mode: DragMode];
@@ -34,9 +41,14 @@ const emit = defineEmits<{
 <template>
     <div
         data-schedule-block
-        class="absolute top-1 bottom-1 rounded-md flex items-center overflow-hidden group select-none touch-none"
+        class="group absolute flex touch-none items-center overflow-hidden rounded-md select-none"
         :class="blockStyle.class"
-        :style="{ left: blockStyle.left, width: blockStyle.width, backgroundColor: blockStyle.backgroundColor ?? undefined }"
+        :style="{
+            left: blockStyle.left,
+            width: blockStyle.width,
+            backgroundColor: blockStyle.backgroundColor ?? undefined,
+            ...laneStyle,
+        }"
         :title="`${label}: ${minutesToTime(startMinutes)} – ${minutesToTime(endMinutes)}${editable && showEditHint ? ' · double-click to edit' : ''}`"
         @pointerdown="emit('pointerDown', $event, 'move')"
         @dblclick.stop="emit('doubleClick')"

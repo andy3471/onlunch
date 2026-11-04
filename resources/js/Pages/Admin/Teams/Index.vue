@@ -15,50 +15,54 @@ defineProps<{
     <AppLayout>
         <AdminNav />
 
-        <div class="space-y-6">
-            <div class="flex items-center justify-between gap-4">
+        <div class="card overflow-hidden">
+            <div class="flex items-center justify-between gap-4 border-b border-white/10 px-6 py-4">
                 <div>
-                    <h2 class="text-lg font-semibold text-slate-100">Teams</h2>
-                    <p class="text-sm text-slate-400 mt-1">Organisational subgroups within this site.</p>
+                    <h2 class="text-lg font-semibold tracking-tight text-white">Teams</h2>
+                    <p class="mt-0.5 text-sm text-slate-400">Organisational subgroups within this site.</p>
                 </div>
                 <Link :href="create.url()">
                     <Button>Create team</Button>
                 </Link>
             </div>
 
-            <div class="card overflow-hidden">
-                <ul class="divide-y divide-slate-800">
-                    <li
-                        v-for="team in teams"
-                        :key="team.id"
-                        class="px-6 py-4 flex items-center justify-between gap-4"
-                    >
-                        <div>
-                            <p class="font-medium text-slate-100">{{ team.name }}</p>
-                            <p class="text-xs text-slate-500 mt-0.5">
-                                <template v-if="team.minimumAvailableStaff">
-                                    Min staff: {{ team.minimumAvailableStaff }}
-                                </template>
-                                <template v-else>No minimum staff rule</template>
-                            </p>
-                        </div>
-                        <div class="flex items-center gap-3 shrink-0">
-                            <span
-                                class="text-xs px-2 py-1 rounded-full"
-                                :class="team.tasksEnabled ? 'bg-emerald-900/40 text-emerald-300' : 'bg-slate-800 text-slate-400'"
-                            >
-                                {{ team.tasksEnabled ? 'Tasks on' : 'Tasks off' }}
-                            </span>
-                            <Link
-                                :href="edit.url({ team: team.id })"
-                                class="text-sm text-primary-400 hover:text-primary-300"
-                            >
-                                Edit
-                            </Link>
-                        </div>
-                    </li>
-                </ul>
-            </div>
+            <ul class="divide-y divide-white/5">
+                <li
+                    v-for="team in teams"
+                    :key="team.id"
+                    class="flex items-center justify-between gap-4 px-6 py-4"
+                >
+                    <div>
+                        <p class="font-medium text-white">{{ team.name }}</p>
+                        <p class="mt-0.5 text-xs text-slate-500">
+                            <template v-if="team.minimumAvailableStaff">
+                                Min staff: {{ team.minimumAvailableStaff }}
+                            </template>
+                            <template v-else>No minimum staff rule</template>
+                        </p>
+                    </div>
+                    <div class="flex shrink-0 items-center gap-3">
+                        <span
+                            class="rounded-md px-2 py-0.5 text-xs font-medium"
+                            :class="team.tasksEnabled ? 'bg-primary-600/15 text-primary-300' : 'bg-white/5 text-slate-400'"
+                        >
+                            {{ team.tasksEnabled ? 'Tasks on' : 'Tasks off' }}
+                        </span>
+                        <Link
+                            :href="edit.url({ team: team.id })"
+                            class="text-sm text-primary-300 hover:text-primary-200"
+                        >
+                            Edit
+                        </Link>
+                    </div>
+                </li>
+                <li
+                    v-if="teams.length === 0"
+                    class="px-6 py-8 text-center text-sm text-slate-500"
+                >
+                    No teams yet.
+                </li>
+            </ul>
         </div>
     </AppLayout>
 </template>
